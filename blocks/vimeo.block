@@ -1,0 +1,19 @@
+name: winter.blocks::lang.blocks.vimeo.name
+description: winter.blocks::lang.blocks.vimeo.description
+icon: icon-vimeo
+context: ["pages"]
+fields:
+    vimeo_id:
+        label: winter.blocks::lang.blocks.vimeo.vimeo_id
+        type: text
+==
+{% if data.vimeo_id %}
+    <iframe
+        id="vimeo-{{ data.vimeo_id }}"
+        frameborder="0"
+        allowfullscreen="1"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        class="w-full aspect-video"
+        src="https://player.vimeo.com/video/{{ data.vimeo_id }}"
+    ></iframe>
+{% endif %}

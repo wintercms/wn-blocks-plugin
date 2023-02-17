@@ -1,0 +1,26 @@
+name: winter.blocks::lang.blocks.columns_two.name
+description: winter.blocks::lang.blocks.columns_two.description
+icon: icon-th-large
+context: ["pages"]
+fields:
+    left:
+        label: winter.blocks::lang.blocks.columns_two.left
+        span: left
+        type: blocks
+        ignore:
+            - columns_two
+    right:
+        label: winter.blocks::lang.blocks.columns_two.right
+        span: right
+        type: blocks
+        ignore:
+            - columns_two
+==
+<div class="grid grid-cols-1 md:grid-cols-2 md:mt-0 mt-5 gap-10 md:gap-4">
+    <div>
+        {% partial 'blocks' blocks=data.left %}
+    </div>
+    <div>
+        {% partial 'blocks' blocks=data.right %}
+    </div>
+</div>

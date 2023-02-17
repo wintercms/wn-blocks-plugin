@@ -1,0 +1,6 @@
+name: winter.blocks::lang.blocks.divider.name
+description: winter.blocks::lang.blocks.divider.description
+icon: icon-ruler-horizontal
+context: ["pages"]
+==
+<hr>

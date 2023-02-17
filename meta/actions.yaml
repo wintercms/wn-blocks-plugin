@@ -1,0 +1,17 @@
+open_url:
+    name: winter.blocks::lang.actions.open_url.name
+    description: winter.blocks::lang.actions.open_url.description
+    icon: icon-link
+    fields:
+        _title:
+            label: winter.blocks::lang.actions.open_url.name
+            type: section
+        href:
+            label: winter.blocks::lang.actions.open_url.href
+            type: text
+        target:
+            label: winter.blocks::lang.actions.open_url.target
+            type: dropdown
+            options:
+                _self: winter.blocks::lang.actions.open_url.target_self
+                _blank: winter.blocks::lang.actions.open_url.target_blank

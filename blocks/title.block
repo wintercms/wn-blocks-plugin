@@ -1,0 +1,21 @@
+name: winter.blocks::lang.blocks.title.name
+description: winter.blocks::lang.blocks.title.description
+icon: icon-heading
+context: ["pages"]
+fields:
+    content:
+        label: winter.blocks::lang.blocks.title.name
+        span: auto
+        type: text
+    size:
+        label: winter.blocks::lang.fields.size
+        span: auto
+        type: balloon-selector
+        default: h2
+        options:
+            h4: winter.blocks::lang.blocks.title.size.h4
+            h3: winter.blocks::lang.blocks.title.size.h3
+            h2: winter.blocks::lang.blocks.title.size.h2
+==
+{# @TODO: Fix this to use the default provided in the config #}
+<{{ data.size ? data.size : "h2" }}>{{ data.content }}</{{ data.size ? data.size : "h2" }}>

@@ -1,0 +1,68 @@
+name: winter.blocks::lang.blocks.button.name
+description: winter.blocks::lang.blocks.button.description
+icon: icon-caret-square-o-right
+context: ["pages"]
+fields:
+    config:
+        label: winter.blocks::lang.blocks.button.name
+        type: nestedform
+        form:
+            fields:
+                label:
+                    label: winter.blocks::lang.fields.label
+                    span: full
+                    type: text
+                color:
+                    label: winter.blocks::lang.fields.color
+                    span: auto
+                    type: colorpicker
+                icon:
+                    label: winter.blocks::lang.fields.icon
+                    span: auto
+                    type: iconpicker
+                _action_section:
+                    label: winter.blocks::lang.fields.actions
+                    type: section
+                actions:
+                    type: repeater
+                    prompt: winter.blocks::lang.fields.actions_prompt
+                    groups: $/winter/blocks/meta/actions.yaml
+==
+<?php
+function onStart()
+{
+    $data = $this['data']['config'];
+
+    // Ensure actions are 0 indexed
+    $data['actions'] = array_values($data['actions'] ?? []);
+
+    if (!empty($data['actions'])) {
+        foreach ($data['actions'] as &$config) {
+            $action = $config['_group'] ?? '';
+            unset($config['_group']);
+            $config = [
+                'data' => $config,
+                'action' => $action,
+            ];
+        }
+    }
+
+    $this['data'] = array_merge($this['data'], [
+        'config' => $data
+    ]);
+}
+?>
+==
+<button
+    type="button"
+    {% if data.config.actions %}
+        onclick="Snowboard.actions().doActions({{ data.config.actions | json_encode }}, event)"
+    {% endif %}
+    class="text-white {{ data.width ? data.width : "" }} inline-flex items-center justify-center bg-primary hover:opacity-90 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+    style="background-color: {{ data.config.color }};"
+>
+    {% if data.config.icon %}
+        <i class="fas {{ data.config.icon }} mr-2"></i>
+    {% endif %}
+    {{ data.config.label }}
+</button>

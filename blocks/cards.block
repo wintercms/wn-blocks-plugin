@@ -1,0 +1,38 @@
+name: winter.blocks::lang.blocks.cards.name
+description: winter.blocks::lang.blocks.cards.description
+icon: icon-th-large
+context: ["pages"]
+fields:
+    cards:
+        label: winter.blocks::lang.blocks.cards.name
+        span: full
+        type: repeater
+        form:
+            fields:
+                blocks:
+                    label: winter.blocks::lang.fields.content
+                    span: full
+                    type: blocks
+                    allow:
+                        - image
+                        - richtext
+                        - button
+==
+<div class="grid grid-cols-1 {{ data.cards | length == 1 ? "" : (data.cards | length == 2 ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3") }} justify-center gap-4">
+    {% for card in data.cards %}
+        <div class="w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+            {% for block in card.blocks %}
+                {% if loop.first and block._group == "image" and block.size == "w-full" %}
+                    {% set block = block | merge({'size': block.size ~ " rounded-t-lg"}) %}
+                {% endif %}
+                {% if block._group != "image" %}
+                    <div class="p-6">
+                        {% partial block._group ~ ".block" data=block %}
+                    </div>
+                {% else %}
+                    {% partial block._group ~ ".block" data=block %}
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>

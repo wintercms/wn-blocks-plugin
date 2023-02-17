@@ -1,0 +1,14 @@
+name: winter.blocks::lang.blocks.plaintext.name
+description: winter.blocks::lang.blocks.plaintext.description
+icon: icon-font
+context: ["pages"]
+fields:
+    content:
+        label: winter.blocks::lang.fields.content
+        span: full
+        type: textarea
+        size: small
+==
+<p>
+    {{ data.content }}
+</p>

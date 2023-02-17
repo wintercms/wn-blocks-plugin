@@ -1,0 +1,13 @@
+name: winter.blocks::lang.blocks.richtext.name
+description: winter.blocks::lang.blocks.richtext.description
+icon: icon-pencil-square-o
+context: ["pages"]
+fields:
+    content:
+        label: winter.blocks::lang.fields.content
+        span: full
+        type: richeditor
+==
+<div>
+    {{ data.content | raw }}
+</div>

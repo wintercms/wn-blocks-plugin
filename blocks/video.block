@@ -1,0 +1,13 @@
+name: winter.blocks::lang.blocks.video.name
+description: winter.blocks::lang.blocks.video.description
+icon: icon-video
+context: ["pages"]
+fields:
+    video:
+        label: winter.blocks::lang.blocks.video.name
+        span: full
+        type: mediafinder
+==
+{% if data.video %}
+    <video src="{{ data.video | media }}" controls></video>
+{% endif %}

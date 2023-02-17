@@ -1,0 +1,19 @@
+name: winter.blocks::lang.blocks.youtube.name
+description: winter.blocks::lang.blocks.youtube.description
+icon: icon-youtube
+context: ["pages"]
+fields:
+    youtube_id:
+        label: winter.blocks::lang.blocks.youtube.youtube_id
+        type: text
+==
+{% if data.youtube_id %}
+    <iframe
+        id="youtube-{{ data.youtube_id }}"
+        frameborder="0"
+        allowfullscreen="1"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        class="w-full aspect-video"
+        src="https://www.youtube.com/embed/{{ data.youtube_id }}?autohide=1&amp;autoplay=0&amp;controls=0&amp;enablejsapi=1&amp;iv_load_policy=3&amp;loop=0&amp;modestbranding=1&amp;playsinline=1&amp;rel=0&amp;showinfo=0&amp;wmode=opaque&amp;origin={{ '/' | app | url_encode }}"
+    ></iframe>
+{% endif %}

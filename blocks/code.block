@@ -1,0 +1,11 @@
+name: winter.blocks::lang.blocks.code.name
+description: winter.blocks::lang.blocks.code.description
+icon: icon-code
+context: ["pages"]
+fields:
+    content:
+        span: full
+        type: codeeditor
+        language: html
+==
+{{ data.content | raw }}
