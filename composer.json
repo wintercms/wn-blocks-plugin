@@ -1,0 +1,33 @@
+{
+    "name": "winter/wn-blocks-plugin",
+    "type": "winter-plugin",
+    "description": "Block based content management plugin for Winter CMS",
+    "homepage": "https://github.com/wintercms/wn-blocks-plugin",
+    "keywords": ["winter cms", "winter", "plugin", "cms", "blocks", "builder"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Luke Towers",
+            "email": "wintercms@luketowers.ca",
+            "homepage": "https://luketowers.ca",
+            "role": "Author"
+        },
+        {
+            "name": "Winter CMS Maintainers",
+            "homepage": "https://wintercms.com",
+            "role": "Maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/wintercms/wn-blocks-plugin/issues",
+        "discord": "https://discord.gg/D5MFSPH6Ux",
+        "source": "https://github.com/wintercms/wn-blocks-plugin"
+    },
+    "require": {
+        "php": ">=7.2",
+        "composer/installers": "~1.0"
+    },
+    "extra": {
+        "installer-name": "blocks"
+    }
+}
