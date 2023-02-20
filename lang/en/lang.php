@@ -3,7 +3,7 @@
 return [
     'plugin' => [
         'name' => 'Blocks',
-        'description' => 'Provides a "block based" content management experience in Winter CMS.',
+        'description' => 'Block based content management plugin for Winter CMS.',
     ],
     'actions' => [
         'open_url' => [

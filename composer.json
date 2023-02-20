@@ -1,0 +1,24 @@
+{
+    "name": "winter/wn-blocks-plugin",
+    "type": "winter-plugin",
+    "description": "Block based content management plugin for Winter CMS.",
+    "homepage": "https://github.com/wintercms/wn-blocks-plugin",
+    "keywords": ["winter", "wintercms", "laravel", "blocks", "block", "builder"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Luke Towers",
+            "email": "wintercms@luketowers.ca"
+        },
+        {
+            "name": "Winter CMS Maintainers",
+            "homepage": "https://wintercms.com",
+            "role": "Maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/wintercms/wn-sso-plugin/issues",
+        "discord": "https://discord.gg/D5MFSPH6Ux",
+        "source": "https://github.com/wintercms/wn-sso-plugin"
+    }
+}
