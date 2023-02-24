@@ -5,7 +5,7 @@ context: ["pages"]
 fields:
     content:
         label: winter.blocks::lang.blocks.title.name
-        span: auto
+        span: full
         type: text
     size:
         label: winter.blocks::lang.fields.size
@@ -16,6 +16,15 @@ fields:
             h4: winter.blocks::lang.blocks.title.size.h4
             h3: winter.blocks::lang.blocks.title.size.h3
             h2: winter.blocks::lang.blocks.title.size.h2
+    alignment_x:
+        label: winter.blocks::lang.fields.alignment_x.label
+        span: auto
+        type: balloon-selector
+        default: center
+        options:
+            left: winter.blocks::lang.fields.alignment_x.left
+            center: winter.blocks::lang.fields.alignment_x.center
+            right: winter.blocks::lang.fields.alignment_x.right
 ==
 {# @TODO: Fix this to use the default provided in the config #}
-<{{ data.size ? data.size : "h2" }}>{{ data.content }}</{{ data.size ? data.size : "h2" }}>
+<{{ data.size ? data.size : "h2" }} style="text-align: {{ data.alignment_x | default('inherit') }};">{{ data.content }}</{{ data.size ? data.size : "h2" }}>
