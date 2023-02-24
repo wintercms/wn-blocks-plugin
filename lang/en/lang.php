@@ -104,5 +104,11 @@ return [
         'icon' => 'Icon',
         'label' => 'Label',
         'size' => 'Size',
+        'alignment_x' => [
+            'label' => 'Horizontal Alignment',
+            'left' => 'Left',
+            'center' => 'Center',
+            'right' => 'Right',
+        ],
     ],
 ];
