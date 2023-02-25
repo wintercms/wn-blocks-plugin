@@ -171,9 +171,7 @@ Other ideas and suggestions are welcome.
 
 ### Integrating with TailwindCSS / CSS Purging
 
-If your theme uses css class purging process, it can be useful to add plugin block paths and static pages paths.
-
-For a theme using Tailwind for example, you need to modify the tailwinf config `content` property: 
+If your theme uses CSS class purging (i.e. Tailwind), it can be useful to add the following paths to your build configuration to include the styles for any blocks defined by the theme or plugins.
 
 ```js
 // tailwind.config.js
