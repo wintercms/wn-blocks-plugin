@@ -177,21 +177,17 @@ For a theme using Tailwind for example, you need to modify the tailwinf config `
 
 ```js
 // tailwind.config.js
-
-const colors = require('tailwindcss/colors');
-
 module.exports = {
     content: [
-        './content/**/*.htm',           // Winter static pages content
+        // Winter.Pages static page content
+        './content/**/*.htm',           
         './layouts/**/*.htm',
         './pages/**/*.htm',
         './partials/**/*.htm',
-        '../../plugins/winter/blocks/blocks/*.block',  // this plugin's blocks
+        './blocks/**/*.block',
+        
+        // Blocks provided by plugins
+        '../../plugins/*/*/blocks/*.block',
     ],
-    theme: {
-        ...
-    },
-    plugins: [],
 };
-
 ``` 
