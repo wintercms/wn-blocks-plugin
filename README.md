@@ -153,7 +153,7 @@ For now, blocks need to be rendered through the use of a special `blocks.htm` pa
 {% endfor %}
 ```
 
- You can then use the following Twig snippet to render the block data:
+ You can then use the following Twig snippet to render the block data in your layout:
 
 ```twig
 {% partial 'blocks' blocks=blocks %}
@@ -168,3 +168,24 @@ The following is an example of the desired API for rendering blocks:
 ```
 
 Other ideas and suggestions are welcome.
+
+### Integrating with TailwindCSS / CSS Purging
+
+If your theme uses CSS class purging (i.e. Tailwind), it can be useful to add the following paths to your build configuration to include the styles for any blocks defined by the theme or plugins.
+
+```js
+// tailwind.config.js
+module.exports = {
+    content: [
+        // Winter.Pages static page content
+        './content/**/*.htm',           
+        './layouts/**/*.htm',
+        './pages/**/*.htm',
+        './partials/**/*.htm',
+        './blocks/**/*.block',
+        
+        // Blocks provided by plugins
+        '../../plugins/*/*/blocks/*.block',
+    ],
+};
+``` 
