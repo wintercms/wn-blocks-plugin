@@ -169,7 +169,7 @@ The following is an example of the desired API for rendering blocks:
 
 Other ideas and suggestions are welcome.
 
-### Note for css purge process
+### Integrating with TailwindCSS / CSS Purging
 
 If your theme uses css class purging process, it can be useful to add plugin block paths and static pages paths.
 
