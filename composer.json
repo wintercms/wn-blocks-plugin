@@ -17,8 +17,8 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/wintercms/wn-sso-plugin/issues",
+        "issues": "https://github.com/wintercms/wn-blocks-plugin/issues",
         "discord": "https://discord.gg/D5MFSPH6Ux",
-        "source": "https://github.com/wintercms/wn-sso-plugin"
+        "source": "https://github.com/wintercms/wn-blocks-plugin"
     }
 }
