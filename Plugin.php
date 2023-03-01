@@ -77,9 +77,7 @@ class Plugin extends PluginBase
     {
         // Register the block manager instance
         BlockManager::instance();
-        Event::listen('cms.theme.getActiveTheme', function ($themeCode) {
-            $theme = Theme::load($themeCode);
-            $resolver = $this->app->make('halcyon');
+        Event::listen('cms.theme.registerHalcyonDatasource', function (Theme $theme, $resolver) {
             $resolver->addDatasource($theme->getDirName(), new AutoDatasource([
                 'theme' => $theme->getDatasource(),
                 'blocks' => new BlocksDatasource(),
