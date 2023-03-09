@@ -31,6 +31,8 @@ fields:
 <?php
 function onStart()
 {
+    $this->controller->addJs(Url::asset('/plugins/winter/blocks/assets/dist/js/blocks.js'), 'Winter.Blocks');
+
     $data = $this['data']['config'];
 
     // Ensure actions are 0 indexed
