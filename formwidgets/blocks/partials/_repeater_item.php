@@ -39,6 +39,7 @@
          data-control="formwidget"
          data-refresh-handler="<?= $this->getEventHandler('onRefresh') ?>"
          data-refresh-data="'_repeater_index': '<?= $indexValue ?>', '_repeater_group': '<?= $groupCode ?>'">
+        <h4><?= e(trans($itemTitle)); ?></h4>
         <?php foreach ($widget->getFields() as $field) : ?>
             <?= $widget->renderField($field) ?>
         <?php endforeach ?>
