@@ -8,6 +8,6 @@ fields:
         span: full
         type: richeditor
 ==
-<div>
+<div class="prose lg:prose-xl">
     {{ data.content | raw }}
 </div>
