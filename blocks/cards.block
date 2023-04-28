@@ -1,6 +1,6 @@
 name: winter.blocks::lang.blocks.cards.name
 description: winter.blocks::lang.blocks.cards.description
-icon: icon-th-large
+icon: icon-grip
 context: ["pages"]
 fields:
     cards:

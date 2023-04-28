@@ -1,6 +1,6 @@
 name: winter.blocks::lang.blocks.button_group.name
 description: winter.blocks::lang.blocks.button_group.description
-icon: icon-th-large
+icon: icon-object-group
 context: ["pages"]
 fields:
     buttons:
