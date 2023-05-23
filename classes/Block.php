@@ -35,34 +35,33 @@ class Block extends CmsCompoundObject
     }
 
     /**
-     * Renders a block content
+     * Renders the provided block
      */
     public static function render(string|array $block, array $data = []): string
     {
         if (is_array($block)) {
-            $data = array_merge($block, $data);
-
-            if (!array_key_exists('_group', $block)) {
-                throw new SystemException("The block definition must contain a `_group` key.");
-            }
-
-            $block = $block['_group'];
+            $data = $block;
+            $block = $data['_group'] ?? false;
+        }
+        
+        if (empty($block)) {
+            throw new SystemException("The block name was not provided");
         }
 
         return (new \Cms\Classes\Controller())->renderPartial($block . '.block', ['data' => $data]);
     }
 
     /**
-     * Renders a list of blocks
+     * Renders the provided blocks
      */
     public static function renderAll(array $blocks): string
     {
         $content = '';
         $controller = (new \Cms\Classes\Controller());
 
-        foreach ($blocks as $block) {
+        foreach ($blocks as $i => $block) {
             if (!array_key_exists('_group', $block)) {
-                throw new SystemException("The block definition must contain a `_group` key.");
+                throw new SystemException("The block definition at index $i must contain a `_group` key.");
             }
 
             $content .= $controller->renderPartial($block['_group'] . '.block', ['data' => $block]);
