@@ -48,7 +48,7 @@ class Block extends CmsCompoundObject
             throw new SystemException("The block name was not provided");
         }
 
-        return (new \Cms\Classes\Controller())->renderPartial($block . '.block', ['data' => $data]);
+        return (new Controller())->renderPartial($block . '.block', ['data' => $data]);
     }
 
     /**
@@ -57,7 +57,7 @@ class Block extends CmsCompoundObject
     public static function renderAll(array $blocks): string
     {
         $content = '';
-        $controller = (new \Cms\Classes\Controller());
+        $controller = (new Controller());
 
         foreach ($blocks as $i => $block) {
             if (!array_key_exists('_group', $block)) {
