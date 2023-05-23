@@ -159,9 +159,38 @@ For now, blocks need to be rendered through the use of a special `blocks.htm` pa
 {% partial 'blocks' blocks=blocks %}
 ```
 
-### Desired Rendering API
+### Manually Rendering Blocks
 
-The following is an example of the desired API for rendering blocks:
+#### Using PHP
+
+```php
+use Winter\Blocks\Classes\Block;
+
+// Render a single block from stored data
+Block::render($model->blocks[0]);
+
+// Render an array of blocks from stored data
+Block::renderAll($model->blocks);
+
+// Render a single block manually
+Block::render('title', [
+    'content' => 'Lorem ipsum dolor sit amet.',
+    'alignment_x' => 'left',
+    'size' => 'h1',
+]);
+
+// Render a single block manually using only array data
+Block::render([
+    '_group' => 'title',
+    'content' => 'Lorem ipsum dolor sit amet.',
+    'alignment_x' => 'left',
+    'size' => 'h1',
+]);
+```
+
+#### Using Twig 
+
+>**NOTE:** This is not implemented yet but acts as an example of the desired API for rendering blocks in Twig
 
 ```twig
 {% blocks blocks=this.theme.footer_blocks %}
