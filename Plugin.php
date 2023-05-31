@@ -68,8 +68,8 @@ class Plugin extends PluginBase
     {
         return [
             'functions' => [
-                'renderBlock' => ['Winter\Blocks\Classes\Block', 'render'],
-                'renderBlocks' => ['Winter\Blocks\Classes\Block', 'renderAll'],
+                'renderBlock' => [\Winter\Blocks\Classes\Block::class, 'render'],
+                'renderBlocks' => [\Winter\Blocks\Classes\Block::class, 'renderAll'],
             ],
         ];
     }
