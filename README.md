@@ -45,7 +45,7 @@ public function registerBlocks(): array
 {
     return [
         'example' => '$/myauthor/myplugin/blocks/example.block',
-    ],
+    ];
 }
 ```
 
