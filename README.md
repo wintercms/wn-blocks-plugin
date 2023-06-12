@@ -4,7 +4,7 @@ Provides a "block based" content management experience in Winter CMS
 
 >**NOTE:** This plugin is still in development and is likely to undergo changes. Do not use in production environments without using a version constraint in your composer.json file and carefully monitoring for breaking changes.
 
->**NOTE:** This plugin requires Winter CMS v1.2.2+ (currently unreleased, so target the `dev-develop` branch instead).
+>**NOTE:** This plugin requires Winter CMS v1.2.2 or above.
 
 
 ## Installation
