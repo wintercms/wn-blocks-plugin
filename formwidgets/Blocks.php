@@ -110,7 +110,10 @@ class Blocks extends Repeater
     {
         $definitions = [];
         foreach (BlockManager::instance()->getConfigs($this->config->blockContext ?? null) as $code => $config) {
-            if (in_array($code, $this->ignore)) {
+            if (
+                in_array($code, $this->ignore)
+                || count(array_intersect($config['context'], $this->ignore))
+            ) {
                 continue;
             }
 
