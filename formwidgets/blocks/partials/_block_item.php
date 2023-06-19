@@ -1,18 +1,12 @@
 <?php
-    $groupCode = $useGroups ? $this->getGroupCodeFromIndex($indexValue) : '';
-    $itemTitle = $useGroups ? $this->getGroupTitle($groupCode) : null;
+$groupCode = $this->getGroupCodeFromIndex($indexValue);
+$itemTitle = $this->getGroupTitle($groupCode);
+$itemIcon = $this->getGroupIcon($groupCode);
 ?>
 <li
-    <?= $itemTitle ? 'data-collapse-title="' . e(trans($itemTitle)) . '"' : '' ?>
-    class="field-repeater-item">
+    class="field-repeater-item<?php if (!count($widget->getFields())): ?> empty<?php endif ?>">
 
     <?php if (!$this->previewMode) : ?>
-        <?php if ($sortable) : ?>
-            <div class="repeater-item-handle <?= $this->getId('items') ?>-handle">
-                <i class="icon-bars"></i>
-            </div>
-        <?php endif; ?>
-
         <div class="repeater-item-remove">
             <button
                 type="button"
@@ -27,13 +21,20 @@
         </div>
     <?php endif ?>
 
-    <div class="repeater-item-collapse">
-        <a href="javascript:;" class="repeater-item-collapse-one">
-            <i class="icon-chevron-up"></i>
-        </a>
-    </div>
+    <?php if (count($widget->getFields())): ?>
+        <div class="repeater-item-collapse">
+            <a href="javascript:;" class="repeater-item-collapse-one">
+                <i class="icon-chevron-up"></i>
+            </a>
+        </div>
+    <?php endif ?>
 
-    <div class="repeater-item-collapsed-title"></div>
+    <div class="repeater-item-title<?php if (!$this->previewMode && $sortable): ?> repeater-item-handle <?= $this->getId('items') ?>-handle"<?php endif ?>>
+        <span class="icon">
+            <i class="<?= $itemIcon ?>"></i>
+        </span>
+        <span class="name"><?= e(trans($itemTitle)) ?></span>
+    </div>
 
     <div class="field-repeater-form"
          data-control="formwidget"
@@ -42,9 +43,8 @@
         <?php foreach ($widget->getFields() as $field) : ?>
             <?= $widget->renderField($field) ?>
         <?php endforeach ?>
-        <?php if ($useGroups) : ?>
-            <input type="hidden" name="<?= $widget->arrayName ?>[_group]" value="<?= $groupCode ?>" />
-        <?php endif ?>
+
+        <input type="hidden" name="<?= $widget->arrayName ?>[_group]" value="<?= $groupCode ?>" />
     </div>
 
 </li>

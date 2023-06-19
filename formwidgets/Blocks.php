@@ -21,7 +21,7 @@ class Blocks extends Repeater
     public array $allow = [];
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function init()
     {
@@ -34,6 +34,75 @@ class Blocks extends Repeater
     }
 
     /**
+     * {@inheritDoc}
+     */
+    protected function loadAssets()
+    {
+        $this->addCss('css/blocks.css', 'Winter.Blocks');
+        $this->addJs('js/blocks.js', 'Winter.Blocks');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function prepareVars()
+    {
+        // Refresh the loaded data to support being modified by filterFields
+        // @see https://github.com/octobercms/october/issues/2613
+        if (!self::$onAddItemCalled) {
+            $this->processItems();
+        }
+
+        if ($this->previewMode) {
+            foreach ($this->formWidgets as $widget) {
+                $widget->previewMode = true;
+            }
+        }
+
+        $this->vars['prompt'] = $this->prompt;
+        $this->vars['formWidgets'] = $this->formWidgets;
+        $this->vars['titleFrom'] = $this->titleFrom;
+        $this->vars['minItems'] = $this->minItems;
+        $this->vars['maxItems'] = $this->maxItems;
+        $this->vars['sortable'] = $this->sortable;
+        $this->vars['style'] = $this->style;
+
+        $this->vars['useGroups'] = $this->useGroups;
+        $this->vars['groupDefinitions'] = $this->groupDefinitions;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function render()
+    {
+        $this->prepareVars();
+        return $this->makePartial('block');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function onAddItem()
+    {
+        $groupCode = post('_repeater_group');
+
+        $index = $this->getNextIndex();
+
+        $this->prepareVars();
+        $this->vars['widget'] = $this->makeItemFormWidget($index, $groupCode);
+        $this->vars['indexValue'] = $index;
+
+        $itemContainer = '@#' . $this->getId('items');
+
+        return [
+            $itemContainer => $this->makePartial('block_item')
+        ];
+    }
+
+    /**
+     * {@inheritDoc}
+     *
      * This method overrides the base repeater processGroupMode to implement block functionality without pre-defining a
      * group.
      */
@@ -45,7 +114,11 @@ class Blocks extends Repeater
                 continue;
             }
 
-            if (!empty($this->allow) && !in_array($code, $this->allow)) {
+            if (
+                !empty($this->allow)
+                && !in_array($code, $this->allow)
+                && !count(array_intersect($config['context'], $this->allow))
+            ) {
                 continue;
             }
 
@@ -102,5 +175,15 @@ class Blocks extends Repeater
         }
 
         return $config;
+    }
+
+    /**
+     * Returns the group icon from its unique code.
+     * @param $groupCode string
+     * @return string
+     */
+    public function getGroupIcon($groupCode)
+    {
+        return array_get($this->groupDefinitions, $groupCode.'.icon');
     }
 }

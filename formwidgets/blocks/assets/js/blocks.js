@@ -56,6 +56,8 @@
         this.$el.on('ajaxDone', '> .field-repeater-add-item > [data-repeater-add]', this.proxy(this.onAddItemSuccess))
         this.$el.on('click', '> ul > li > .repeater-item-collapse .repeater-item-collapse-one', this.proxy(this.toggleCollapse))
         this.$el.on('click', '> .field-repeater-add-item > [data-repeater-add-group]', this.proxy(this.clickAddGroupButton))
+        this.$el.on('mouseover', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemMouseOver))
+        this.$el.on('mouseout', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemMouseOut))
 
         this.$el.one('dispose-control', this.proxy(this.dispose))
 
@@ -285,6 +287,19 @@
                     break
             }
         })
+    }
+
+    Repeater.prototype.onItemMouseOver = function(event) {
+        event.stopPropagation();
+
+        $(this.$el).find('.field-repeater-item').removeClass('hover');
+        $(event.currentTarget).closest('.field-repeater-item').addClass('hover');
+    }
+
+    Repeater.prototype.onItemMouseOut = function(event) {
+        event.stopPropagation();
+
+        $(event.currentTarget).closest('.field-repeater-item').removeClass('hover');
     }
 
     // FIELD REPEATER PLUGIN DEFINITION

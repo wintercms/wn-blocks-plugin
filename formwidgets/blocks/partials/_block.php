@@ -1,4 +1,4 @@
-<div class="field-repeater"
+<div class="field-blocks"
     data-control="fieldrepeater"
     <?= $titleFrom ? 'data-title-from="'.$titleFrom.'"' : '' ?>
     <?= $minItems ? 'data-min-items="'.$minItems.'"' : '' ?>
@@ -12,7 +12,7 @@
 >
     <ul id="<?= $this->getId('items') ?>" class="field-repeater-items">
         <?php foreach ($formWidgets as $index => $widget) : ?>
-            <?= $this->makePartial('repeater_item', [
+            <?= $this->makePartial('block_item', [
                 'widget' => $widget,
                 'indexValue' => $index
             ]) ?>
@@ -21,22 +21,14 @@
 
     <?php if (!$this->previewMode) : ?>
         <div class="field-repeater-add-item loading-indicator-container indicator-center">
-            <?php if ($useGroups) : ?>
-                <a
-                    href="javascript:;"
-                    data-repeater-add-group
-                    data-load-indicator>
-                    <?= e(trans($prompt)) ?>
-                </a>
-            <?php else : ?>
-                <a
-                    href="javascript:;"
-                    data-repeater-add
-                    data-request="<?= $this->getEventHandler('onAddItem') ?>"
-                    data-load-indicator>
-                    <?= e(trans($prompt)) ?>
-                </a>
-            <?php endif ?>
+            <a
+                href="javascript:;"
+                class="wn-icon-plus"
+                data-repeater-add-group
+                data-load-indicator
+            >
+                <?= e(trans($prompt)) ?>
+            </a>
         </div>
 
         <input type="hidden" name="<?= $this->alias; ?>_loaded" value="1">

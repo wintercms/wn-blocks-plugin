@@ -1,6 +1,8 @@
-@import "../../../../assets/less/core/boot.less";
+// out: false
 
-.field-repeater {
+@import "../../../../../../../modules/backend/assets/less/core/boot.less";
+
+.field-blocks {
     padding-top: 5px;
 
     .field-repeater-items {
@@ -52,79 +54,33 @@
 
     li.field-repeater-item {
         position: relative;
-        margin: 0 0 1em 1em !important;
-        padding: 1.5em 1.25em 0 1.25em !important;
-        background: #f5f5f5;
+        margin: 0 0 1em !important;
+        padding: 3.5em 1.25em 0 1.25em !important;
         border: 1px solid @input-border;
         border-radius: @border-radius-base;
-        box-shadow: @input-box-shadow;
+        background: @body-bg;
         min-height: 30px;
 
-        &:before {
-            color: #bdc3c7;
-            .icon(@circle);
-            font-size: 8px;
-            position: absolute;
-            left: -18px;
-            top: -2px;
-        }
+        &.collapsed,
+        &.empty {
+            padding: 0 !important;
 
-        &:after {
-            counter-increment: repeater-index-counter;
-            content: counter(repeater-index-counter);
-            display: block;
-            position: absolute;
-            font-size: 12px;
-            left: -27px;
-            color: #bdc3c7;
-            top: 10px;
-            width: 24px;
-            text-align: center;
-        }
-
-        &.collapsed {
             .field-repeater-form {
                 display:none;
             }
 
             .repeater-item-collapse {
                 .repeater-item-collapse-one {
-                    .transform(scale(1,-1));
+                    .transform(rotate(180deg));
                 }
             }
 
-            .repeater-item-collapsed-title {
-                display: block;
-            }
-        }
-
-        .repeater-item-collapsed-title {
-            display: none;
-            position: absolute;
-            font-size: 13px;
-            top: 50%;
-            left: 10px;
-            .transform(translateY(-50%));
-        }
-
-        .field-repeater-form {
-            position: relative;
-            top: -7px;
-            .clearfix;
-        }
-
-        .repeater-item-handle {
-            position: absolute;
-            top: -6px;
-            left: -25px;
-            color: #bdc3c7;
-            background: @body-bg;
-            cursor: move;
-            opacity: 0;
-            border-radius: 999px;
-            .transition(~'opacity 0.5s');
-            &:hover {
-                color: #999;
+            .repeater-item-title {
+                display: inline-block;
+                border-bottom: none;
+                border-bottom-right-radius: 0;
+                border-bottom-left-radius: @border-radius-base;
+                height: 100%;
             }
         }
 
@@ -133,6 +89,8 @@
             top: 5px;
             right: 30px;
             z-index: 90;
+            opacity: 0;
+            .transition(~'opacity 0.5s');
 
             a, button {
                 .transition(~'transform 0.3s');
@@ -154,6 +112,8 @@
             top: 4px;
             right: 5px;
             z-index: 90;
+            opacity: 0;
+            .transition(~'opacity 0.5s');
 
             &.disabled {
                 display: none;
@@ -170,18 +130,62 @@
         }
 
         .repeater-item-collapse,
-        .repeater-item-handle,
         .repeater-item-remove {
             width: 20px;
             height: 20px;
             text-align: center;
+
+            > button,
+            > a {
+                outline: none;
+            }
         }
 
-        &:hover, &:active {
-            .repeater-item-collapse,
-            .repeater-item-handle,
-            .repeater-item-remove {
+        .repeater-item-title {
+            position: absolute;
+            font-size: 13px;
+            top: 0px;
+            left: 0px;
+            padding: 4px 8px;
+            border-bottom: 1px solid @input-border;
+            border-right: 1px solid @input-border;
+            border-top-left-radius: @border-radius-base;
+            border-bottom-right-radius: @border-radius-base;
+            background: #fff;
+            color: fadeout(@input-color, 50);
+
+            > .icon {
+                margin-right: 4px;
+            }
+        }
+
+        .repeater-item-handle {
+            cursor: move;
+        }
+
+        &.hover {
+            border: 1px solid @highlight-hover-bg;
+
+            > .repeater-item-title {
+                color: @highlight-hover-bg;
+                border-color: @highlight-hover-bg;
+            }
+
+            > .repeater-item-collapse,
+            > .repeater-item-handle,
+            > .repeater-item-remove {
                 opacity: 1;
+            }
+        }
+
+        .field-repeater-form {
+            position: relative;
+            top: -7px;
+            .clearfix;
+
+            .form-group.span-left,
+            .form-group.span-right {
+                width: 49.5%;
             }
         }
     }
@@ -189,20 +193,10 @@
     .field-repeater-add-item {
         position: relative;
         margin-top: 10px;
-        margin-left: 20px;
-        border: 2px dotted #e0e0e0;
-        border-radius: 5px;
-
-        &:before {
-            color: #bdc3c7;
-            .icon(@plus);
-            font-size: 16px;
-            position: absolute;
-            left: -23px;
-            top: -11px;
-        }
 
         > a {
+            border: 1px dashed #bdc3c7;
+            border-radius: 5px;
             color: #bdc3c7;
             text-align: center;
             display: block;
@@ -211,30 +205,21 @@
             text-transform: uppercase;
             font-weight: 600;
             font-size: @font-size-base - 2;
-        }
+            outline: none;
+            .transition(~'border-color 0.5s, color 0.5s');
 
-        &:hover, &:focus {
-            background-color: @highlight-hover-bg;
-            border-color: transparent;
-
-            &:before {
-                color: #999;
+            &:hover, &:focus {
+                border-color: @highlight-hover-bg;
+                color: @highlight-hover-bg;
             }
 
-            > a {
-                color: @highlight-hover-text;
-            }
-        }
-
-        &:active {
-            background: @highlight-active-bg;
-            border-color: transparent;
-            > a {
-                color: @highlight-active-text;
+            &:active {
+                border-color: @highlight-active-bg;
+                color: @highlight-active-bg;
             }
         }
 
-        &.in-progress {
+        &.in-progress > a {
             border-color: #e0e0e0 !important;
             background: transparent !important;
         }
