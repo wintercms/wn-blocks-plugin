@@ -45,35 +45,6 @@ class Blocks extends Repeater
     /**
      * {@inheritDoc}
      */
-    public function prepareVars()
-    {
-        // Refresh the loaded data to support being modified by filterFields
-        // @see https://github.com/octobercms/october/issues/2613
-        if (!self::$onAddItemCalled) {
-            $this->processItems();
-        }
-
-        if ($this->previewMode) {
-            foreach ($this->formWidgets as $widget) {
-                $widget->previewMode = true;
-            }
-        }
-
-        $this->vars['prompt'] = $this->prompt;
-        $this->vars['formWidgets'] = $this->formWidgets;
-        $this->vars['titleFrom'] = $this->titleFrom;
-        $this->vars['minItems'] = $this->minItems;
-        $this->vars['maxItems'] = $this->maxItems;
-        $this->vars['sortable'] = $this->sortable;
-        $this->vars['style'] = $this->style;
-
-        $this->vars['useGroups'] = $this->useGroups;
-        $this->vars['groupDefinitions'] = $this->groupDefinitions;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public function render()
     {
         $this->prepareVars();
@@ -94,9 +65,11 @@ class Blocks extends Repeater
         $this->vars['indexValue'] = $index;
 
         $itemContainer = '@#' . $this->getId('items');
+        $addItemContainer = '#' . $this->getId('add-item');
 
         return [
-            $itemContainer => $this->makePartial('block_item')
+            $addItemContainer => '',
+            $itemContainer => $this->makePartial('block_item') . $this->makePartial('block_add_item')
         ];
     }
 

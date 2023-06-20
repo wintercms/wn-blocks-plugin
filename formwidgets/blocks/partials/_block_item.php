@@ -4,7 +4,9 @@ $itemTitle = $this->getGroupTitle($groupCode);
 $itemIcon = $this->getGroupIcon($groupCode);
 ?>
 <li
-    class="field-repeater-item<?php if (!count($widget->getFields())): ?> empty<?php endif ?>">
+    class="field-repeater-item<?php if (!count($widget->getFields())): ?> empty<?php endif ?>"
+    <?php if ($mode === 'grid'): ?>style="min-height: <?= $rowHeight ?>px"<?php endif ?>
+>
 
     <?php if (!$this->previewMode) : ?>
         <div class="repeater-item-remove">
@@ -21,7 +23,7 @@ $itemIcon = $this->getGroupIcon($groupCode);
         </div>
     <?php endif ?>
 
-    <?php if (count($widget->getFields())): ?>
+    <?php if (count($widget->getFields()) && $mode !== 'grid'): ?>
         <div class="repeater-item-collapse">
             <a href="javascript:;" class="repeater-item-collapse-one">
                 <i class="icon-chevron-up"></i>

@@ -1,9 +1,11 @@
 <div class="field-blocks"
-    data-control="fieldrepeater"
+    data-control="fieldblocks"
     <?= $titleFrom ? 'data-title-from="'.$titleFrom.'"' : '' ?>
     <?= $minItems ? 'data-min-items="'.$minItems.'"' : '' ?>
     <?= $maxItems ? 'data-max-items="'.$maxItems.'"' : '' ?>
     <?= $style ? 'data-style="'.$style.'"' : '' ?>
+    data-mode="<?= $mode ?>"
+    <?php if ($mode === 'grid'): ?> data-columns="<?= $columns ?>" <?php endif ?>
     <?php if ($sortable) : ?>
     data-sortable="true"
     data-sortable-container="#<?= $this->getId('items') ?>"
@@ -14,23 +16,18 @@
         <?php foreach ($formWidgets as $index => $widget) : ?>
             <?= $this->makePartial('block_item', [
                 'widget' => $widget,
-                'indexValue' => $index
+                'indexValue' => $index,
+                'height' => ($mode === 'grid') ? $rowHeight : null,
             ]) ?>
         <?php endforeach ?>
+
+        <?= $this->makePartial('block_add_item', [
+            'useGroups' => $useGroups,
+            'height' => ($mode === 'grid') ? $rowHeight : null,
+        ]) ?>
     </ul>
 
     <?php if (!$this->previewMode) : ?>
-        <div class="field-repeater-add-item loading-indicator-container indicator-center">
-            <a
-                href="javascript:;"
-                class="wn-icon-plus"
-                data-repeater-add-group
-                data-load-indicator
-            >
-                <?= e(trans($prompt)) ?>
-            </a>
-        </div>
-
         <input type="hidden" name="<?= $this->alias; ?>_loaded" value="1">
     <?php endif ?>
 
