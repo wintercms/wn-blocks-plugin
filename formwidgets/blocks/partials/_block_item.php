@@ -1,6 +1,8 @@
 <?php
 $groupCode = $this->getGroupCodeFromIndex($indexValue);
+$groupConfig = $this->getGroupConfigFromIndex($indexValue);
 $itemTitle = $this->getGroupTitle($groupCode);
+$itemDescription = $this->getGroupDescription($groupCode);
 $itemIcon = $this->getGroupIcon($groupCode);
 ?>
 <li
@@ -36,7 +38,24 @@ $itemIcon = $this->getGroupIcon($groupCode);
             <i class="<?= $itemIcon ?>"></i>
         </span>
         <span class="name"><?= e(trans($itemTitle)) ?></span>
+
+        <input type="hidden" name="<?= $widget->arrayName ?>[_group]" value="<?= $groupCode ?>" />
     </div>
+
+    <?php if ($this->hasInspectorConfig($groupCode)): ?>
+        <a
+            href="javascript:;"
+            class="block-config"
+            data-inspectable
+            data-inspector-title="<?= e(trans($itemTitle)) ?>"
+            data-inspector-description="<?= e(trans($itemDescription)) ?>"
+            data-inspector-config="<?= e($this->getInspectorConfig($groupCode)) ?>"
+            data-inspector-offset-y="-5"
+        >
+            <i class="icon-cog"></i>
+            <input type="hidden" data-inspector-values name="<?= $widget->arrayName ?>[_config]" value="<?= e($groupConfig ?? '') ?>" />
+        </a>
+        <?php endif ?>
 
     <div class="field-repeater-form"
          data-control="formwidget"

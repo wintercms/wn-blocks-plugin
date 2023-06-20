@@ -43,12 +43,26 @@ class Block extends CmsCompoundObject
             $data = $block;
             $block = $data['_group'] ?? false;
         }
-        
+
         if (empty($block)) {
             throw new SystemException("The block name was not provided");
         }
 
-        return (new Controller())->renderPartial($block . '.block', ['data' => $data]);
+        $partialData = [];
+
+        foreach ($data as $key => $value) {
+            if (in_array($key, ['_group', '_config'])) {
+                continue;
+            }
+
+            $partialData[$key] = $value;
+        }
+
+        if (!empty($data['_config'])) {
+            $partialData['config'] = json_decode($data['_config']);
+        }
+
+        return (new Controller())->renderPartial($block . '.block', $partialData);
     }
 
     /**
@@ -64,7 +78,21 @@ class Block extends CmsCompoundObject
                 throw new SystemException("The block definition at index $i must contain a `_group` key.");
             }
 
-            $content .= $controller->renderPartial($block['_group'] . '.block', ['data' => $block]);
+            $partialData = [];
+
+            foreach ($block as $key => $value) {
+                if (in_array($key, ['_group', '_config'])) {
+                    continue;
+                }
+
+                $partialData[$key] = $value;
+            }
+
+            if (!empty($block['_config'])) {
+                $partialData['config'] = json_decode($block['_config']);
+            }
+
+            $content .= $controller->renderPartial($block['_group'] . '.block', $partialData);
         }
 
         return $content;

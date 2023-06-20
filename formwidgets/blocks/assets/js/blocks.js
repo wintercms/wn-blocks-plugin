@@ -318,6 +318,12 @@
     Blocks.prototype.onItemMouseOut = function(event) {
         event.stopPropagation()
 
+        console.log($(event.currentTarget).closest('.field-repeater-item'));
+
+        if ($(event.currentTarget).closest('.field-repeater-item').find('.inspector-open').length) {
+            return;
+        }
+
         $(event.currentTarget).closest('.field-repeater-item').removeClass('hover')
     }
 

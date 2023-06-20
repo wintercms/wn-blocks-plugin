@@ -129,6 +129,27 @@
             }
         }
 
+        .block-config {
+            position: absolute;
+            top: 4px;
+            right: 60px;
+            z-index: 90;
+            opacity: 0;
+            .transition(~'opacity 0.5s');
+
+            color: #bdc3c7;
+            line-height: 20px;
+            display: block;
+            font-size: 12px;
+
+            &:hover,
+            &:focus,
+            &.inspector-open {
+                color: #999;
+                text-decoration: none;
+            }
+        }
+
         .repeater-item-collapse,
         .repeater-item-remove {
             width: 20px;
@@ -171,6 +192,7 @@
                 border-color: @highlight-hover-bg;
             }
 
+            > .block-config,
             > .repeater-item-collapse,
             > .repeater-item-handle,
             > .repeater-item-remove {
