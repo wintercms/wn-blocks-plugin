@@ -82,6 +82,11 @@
                 border-bottom-left-radius: @border-radius-base;
                 height: 100%;
             }
+
+            > .repeater-item-collapse,
+            > .repeater-item-remove {
+                opacity: 1;
+            }
         }
 
         .repeater-item-collapse {
@@ -185,13 +190,25 @@
         }
 
         &.hover {
-            border: 1px solid @highlight-hover-bg;
+            border: 1px solid #999;
 
             > .repeater-item-title {
-                color: @highlight-hover-bg;
-                border-color: @highlight-hover-bg;
+                color: #999;
+                border-color: #999;
             }
+        }
 
+        &.focus {
+            border: 1px solid @highlight-hover-bg !important;
+
+            > .repeater-item-title {
+                color: @highlight-hover-bg !important;
+                border-color: @highlight-hover-bg !important;
+            }
+        }
+
+        &.hover,
+        &.focus {
             > .block-config,
             > .repeater-item-collapse,
             > .repeater-item-handle,

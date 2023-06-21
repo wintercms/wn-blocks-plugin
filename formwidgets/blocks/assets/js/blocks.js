@@ -58,6 +58,8 @@
         this.$el.on('click', '> .field-repeater-items > .field-repeater-add-item > [data-repeater-add-group]', this.proxy(this.clickAddGroupButton))
         this.$el.on('mouseover', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemMouseOver))
         this.$el.on('mouseout', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemMouseOut))
+        this.$el.on('focus', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemFocus))
+        this.$el.on('blur', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemBlur))
 
         this.$el.one('dispose-control', this.proxy(this.dispose))
 
@@ -76,6 +78,8 @@
         this.$el.off('click', '> .field-repeater-items > .field-repeater-add-item > [data-repeater-add-group]', this.proxy(this.clickAddGroupButton))
         this.$el.off('mouseover', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemMouseOver))
         this.$el.off('mouseout', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemMouseOut))
+        this.$el.off('focus', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemFocus))
+        this.$el.off('blur', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemBlur))
 
         this.$el.off('dispose-control', this.proxy(this.dispose))
         this.$el.removeData('wn.blocks')
@@ -318,13 +322,23 @@
     Blocks.prototype.onItemMouseOut = function(event) {
         event.stopPropagation()
 
-        console.log($(event.currentTarget).closest('.field-repeater-item'));
-
         if ($(event.currentTarget).closest('.field-repeater-item').find('.inspector-open').length) {
-            return;
+            return
         }
 
         $(event.currentTarget).closest('.field-repeater-item').removeClass('hover')
+    }
+
+    Blocks.prototype.onItemFocus = function(event) {
+        event.stopPropagation()
+
+        $(event.currentTarget).closest('.field-repeater-item').addClass('focus')
+    }
+
+    Blocks.prototype.onItemBlur = function(event) {
+        event.stopPropagation()
+
+        $(event.currentTarget).closest('.field-repeater-item').removeClass('focus')
     }
 
     // FIELD REPEATER PLUGIN DEFINITION
