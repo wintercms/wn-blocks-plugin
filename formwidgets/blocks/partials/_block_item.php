@@ -51,6 +51,7 @@ $itemIcon = $this->getGroupIcon($groupCode);
             data-inspector-description="<?= e(trans($itemDescription)) ?>"
             data-inspector-config="<?= e($this->getInspectorConfig($groupCode)) ?>"
             data-inspector-offset-y="-5"
+            data-inspector-offset-x="-15"
         >
             <i class="icon-cog"></i>
             <input type="hidden" data-inspector-values name="<?= $widget->arrayName ?>[_config]" value="<?= e($groupConfig ?? '') ?>" />
