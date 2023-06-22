@@ -1,0 +1,10 @@
+name: Title
+description: Title block
+icon: icon-square
+tags: ["content"]
+fields:
+    content:
+        label: false
+        type: text
+        span: full
+==
