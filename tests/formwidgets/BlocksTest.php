@@ -7,6 +7,7 @@ use Backend\Classes\Controller;
 use Backend\Classes\FormField;
 use Backend\Widgets\Form;
 use System\Tests\Bootstrap\PluginTestCase;
+use Winter\Blocks\Classes\BlockManager;
 use Winter\Blocks\FormWidgets\Blocks;
 use Winter\Blocks\Tests\Fixtures\Models\Page;
 use Winter\Storm\Support\Facades\Config;
@@ -18,17 +19,24 @@ use Winter\Storm\Support\Facades\Event;
  */
 class BlocksTest extends PluginTestCase
 {
-    protected Blocks $formWidget;
+    protected string $fixturePath;
 
     public function setUp(): void
     {
         parent::setUp();
 
-        $this->createTestFormWidget();
+        $this->fixturePath = dirname(__DIR__) . '/fixtures/blocks/';
+
+        Config::set('cms.activeTheme', 'blocktest');
+        Config::set('cms.themesPath', '/plugins/winter/blocks/tests/fixtures/themes');
+
+        Event::flush('cms.theme.getActiveTheme');
+        Theme::resetCache();
     }
 
-    protected function createTestFormWidget(array $config = [])
+    protected function createTestFormWidget(array $config = []): Blocks
     {
+        Theme::load('blocktest');
         $controller = new Controller();
         $model = new Page();
         $form = new Form($controller, [
@@ -37,7 +45,7 @@ class BlocksTest extends PluginTestCase
         ]);
         $form->bindToController();
 
-        $this->formWidget = new Blocks(
+        $widget = new Blocks(
             $controller,
             new FormField('content', 'Content'),
             array_merge($config, [
@@ -45,10 +53,30 @@ class BlocksTest extends PluginTestCase
                 'model' => $model,
             ]),
         );
+
+        $widget->init();
+        return $widget;
     }
 
     public function testCanCreateFormWidget()
     {
-        $this->assertInstanceOf(Blocks::class, $this->formWidget);
+        $this->assertInstanceOf(Blocks::class, $this->createTestFormWidget());
+    }
+
+    public function testCanLimitAvailableBlocksByTag()
+    {
+        BlockManager::instance()->registerBlock('container', $this->fixturePath . 'container.block');
+        BlockManager::instance()->registerBlock('richtext', $this->fixturePath . 'richtext.block');
+        BlockManager::instance()->registerBlock('title', $this->fixturePath . 'title.block');
+
+        $widget = $this->createTestFormWidget([
+            'tags' => 'content',
+        ]);
+
+        // Only way we can see if the block is available through the public API is through getting the title of
+        // the block. If the title is missing, the block isn't available.
+        $this->assertEquals('Rich Text', $widget->getGroupTitle('richtext'));
+        $this->assertEquals('Title', $widget->getGroupTitle('title'));
+        $this->assertNull($widget->getGroupTitle('container'));
     }
 }
