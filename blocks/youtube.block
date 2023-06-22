@@ -1,7 +1,7 @@
 name: winter.blocks::lang.blocks.youtube.name
 description: winter.blocks::lang.blocks.youtube.description
 icon: icon-youtube
-context: ["pages"]
+tags: ["pages"]
 fields:
     youtube_id:
         label: winter.blocks::lang.blocks.youtube.youtube_id

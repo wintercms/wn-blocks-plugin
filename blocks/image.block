@@ -1,7 +1,7 @@
 name: winter.blocks::lang.blocks.image.name
 description: winter.blocks::lang.blocks.image.description
 icon: icon-picture-o
-context: ["pages"]
+tags: ["pages"]
 fields:
     image:
         type: mediafinder

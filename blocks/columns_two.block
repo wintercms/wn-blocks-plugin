@@ -1,7 +1,7 @@
 name: winter.blocks::lang.blocks.columns_two.name
 description: winter.blocks::lang.blocks.columns_two.description
 icon: icon-table-columns
-context: ["pages"]
+tags: ["pages"]
 fields:
     left:
         label: winter.blocks::lang.blocks.columns_two.left

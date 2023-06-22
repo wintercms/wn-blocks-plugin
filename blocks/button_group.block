@@ -1,7 +1,7 @@
 name: winter.blocks::lang.blocks.button_group.name
 description: winter.blocks::lang.blocks.button_group.description
 icon: icon-object-group
-context: ["pages"]
+tags: ["pages"]
 fields:
     buttons:
         label: winter.blocks::lang.blocks.button_group.buttons

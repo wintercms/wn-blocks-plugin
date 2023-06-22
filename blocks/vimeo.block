@@ -1,7 +1,7 @@
 name: winter.blocks::lang.blocks.vimeo.name
 description: winter.blocks::lang.blocks.vimeo.description
 icon: icon-vimeo
-context: ["pages"]
+tags: ["pages"]
 fields:
     vimeo_id:
         label: winter.blocks::lang.blocks.vimeo.vimeo_id

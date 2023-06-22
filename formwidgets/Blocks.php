@@ -4,6 +4,7 @@ namespace Winter\Blocks\FormWidgets;
 
 use Lang;
 use Backend\FormWidgets\Repeater;
+use Illuminate\Support\Arr;
 use Winter\Blocks\Classes\BlockManager;
 use Winter\Storm\Exception\ApplicationException;
 
@@ -23,6 +24,11 @@ class Blocks extends Repeater
     public array $allow = [];
 
     /**
+     * Defines a single tag, or list of tags to filter by. If `null`, all tags are allowed.
+     */
+    public string|array|null $tags = null;
+
+    /**
      * List of inspector configs for the blocks.
      */
     public array $inspectorConfigs = [];
@@ -40,6 +46,7 @@ class Blocks extends Repeater
         $this->fillFromConfig([
             'ignore',
             'allow',
+            'tags',
         ]);
 
         parent::init();
@@ -186,23 +193,10 @@ class Blocks extends Repeater
     protected function processGroupMode(): void
     {
         $definitions = [];
-        foreach (BlockManager::instance()->getConfigs($this->config->blockContext ?? null) as $code => $config) {
-            if (
-                in_array($code, $this->ignore)
-                || count(array_intersect($config['context'], $this->ignore))
-            ) {
+        foreach (BlockManager::instance()->getConfigs($this->tags) as $code => $config) {
+            if (!empty($config['tags']) && !$this->isBlockAllowed($code, $config['tags'])) {
                 continue;
             }
-
-            if (
-                !empty($this->allow)
-                && !in_array($code, $this->allow)
-                && !count(array_intersect($config['context'], $this->allow))
-            ) {
-                continue;
-            }
-
-            $config = $this->handleFieldContext($config, $this->config->blockContext ?? null);
 
             $definitions[$code] = [
                 'code' => $code,
@@ -223,40 +217,45 @@ class Blocks extends Repeater
     }
 
     /**
-     * Recursively iterates through fields and applies context filtering, may not handle all form types
+     * Determines if a block is allowed according to the widget's ignore/allow list.
+     *
+     * @param string $code
+     * @param array|string $blockTags
+     * @return boolean
      */
-    protected function handleFieldContext(array $config, ?string $context): array
+    protected function isBlockAllowed(string $code, array|string $blockTags)
     {
-        if (!$context) {
-            return $config;
+        $blockTags = (is_array($blockTags)) ? $blockTags : [$blockTags];
+
+        if (isset($this->ignore['blocks']) || isset($this->ignore['tags'])) {
+            $ignoredBlocks = (isset($this->ignore['blocks'])) ? $this->ignore['blocks'] : [];
+            $ignoredTags = (isset($this->ignore['tags'])) ? $this->ignore['tags'] : [];
+        } else {
+            $ignoredBlocks = $this->ignore;
+            $ignoredTags = [];
+        }
+        if (isset($this->allow['blocks']) || isset($this->allow['tags'])) {
+            $allowedBlocks = (isset($this->allow['blocks'])) ? $this->allow['blocks'] : [];
+            $allowedTags = (isset($this->allow['tags'])) ? $this->allow['tags'] : [];
+        } else {
+            $allowedBlocks = $this->allow;
+            $allowedTags = [];
         }
 
-        $target = null;
-
-        if (isset($config['fields'])) {
-            $target = &$config['fields'];
+        if (count($ignoredBlocks) && in_array($code, $ignoredBlocks)) {
+            return false;
+        }
+        if (count($ignoredTags) && array_intersect($blockTags, $ignoredTags)) {
+            return false;
+        }
+        if (count($allowedBlocks) && !in_array($code, $allowedBlocks)) {
+            return false;
+        }
+        if (count($allowedTags) && !array_intersect($blockTags, $allowedTags)) {
+            return false;
         }
 
-        if (isset($config['tabs']['fields'])) {
-            $target = &$config['tabs']['fields'];
-        }
-
-        if (!$target) {
-            return $config;
-        }
-
-        foreach ($target as $key => $field) {
-            if (isset($field['blockContext']) && !in_array($context, $field['blockContext'])) {
-                unset($target[$key]);
-                continue;
-            }
-
-            if (isset($field['form'])) {
-                $target[$key]['form'] = $this->handleFieldContext($field['form'], $context);
-            }
-        }
-
-        return $config;
+        return true;
     }
 
     /**
@@ -270,7 +269,7 @@ class Blocks extends Repeater
     /**
      * Returns the group description from its unique code.
      */
-    public function getGroupDescription(string $groupCode): string
+    public function getGroupDescription(string $groupCode): ?string
     {
         return array_get($this->groupDefinitions, $groupCode.'.description');
     }
@@ -278,7 +277,7 @@ class Blocks extends Repeater
     /**
      * Returns the group icon from its unique code.
      */
-    public function getGroupIcon(string $groupCode): string
+    public function getGroupIcon(string $groupCode): ?string
     {
         return array_get($this->groupDefinitions, $groupCode.'.icon');
     }

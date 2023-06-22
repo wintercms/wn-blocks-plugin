@@ -84,12 +84,17 @@ class BlockManager
     /**
      * Get an array of blocks and their configuration details in the form of ['key' => $config]
      */
-    public function getConfigs(?string $context = null): array
+    public function getConfigs(string|array|null $tags = null): array
     {
         $configs = [];
         foreach ($this->getBlocks() as $block) {
-            if (isset($block->context) && !is_null($context) && !in_array($context, $block->context)) {
-                continue;
+            if (isset($tags)) {
+                $tags = (is_array($tags)) ? $tags : [$tags];
+                $blockTags = (isset($block->tags) && is_array($block->tags)) ? $block->tags : [];
+
+                if (count(array_intersect($tags, $blockTags)) === 0) {
+                    continue;
+                }
             }
 
             $configs[pathinfo($block['fileName'])['filename']] = array_except(

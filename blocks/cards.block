@@ -1,7 +1,7 @@
 name: winter.blocks::lang.blocks.cards.name
 description: winter.blocks::lang.blocks.cards.description
 icon: icon-grip
-context: ["pages"]
+tags: ["pages"]
 fields:
     cards:
         label: winter.blocks::lang.blocks.cards.name

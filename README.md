@@ -32,11 +32,11 @@ This plugin also introduces the concepts of "actions"; a way to define and execu
 
 >**NOTE:** This is very much a WIP API and is subject to change. Feedback very much welcome here for ideas around how to register, manage, extend, and provide actions to the frontend.
 
-### Contexts
+### Tags
 
-Blocks may have one or more contexts, which defines the applicable cases where a block may be used. For example, you may have a Gallery block which allows only "image" blocks to be used, or a container block which allows all "content" block but does not allow another "container" block within.
+Blocks may have one or more tags, which is a way of defining and grouping blocks. For example, you may have a Gallery block which allows only "image" tagged blocks to be used, or a container block which allows all "content" tagged blocks but does not allow another "container" tagged block within.
 
-Contexts are defined in the blocks, and are controlled and limited through the Blocks form widget.
+Tags are defined in the blocks, and can be controlled and limited through the Blocks form widget.
 
 
 ## Registering Blocks
@@ -77,7 +77,7 @@ The following property values (name, description, etc) can be defined in the Set
 name: Example
 description: Example Block Description
 icon: icon-name
-context: [] # Defines the contexts in which this block can be used
+tags: [] # Defines the tags that this block is associated with
 permissions: [] # List of permissions required to interact with the block
 fields: # The form fields used to populate the block's content
 config: # The block configuration options
@@ -97,7 +97,7 @@ For example, let's say you have a **Title** block which can display a heading ta
 name: Title
 description: Adds a title
 icon: icon-heading
-context: ["content"]
+tags: ["content"]
 fields:
     content:
         label: false
@@ -146,14 +146,14 @@ In order to provide an interface for managing block-based content, this plugin p
 
 The `blocks` FormWidget supports two additional properties:
 
-- `allow`: An array of block types that are allowed to be added to the widget. If specified, only those block types listed will be available to add to the current instance of the field. You can specify either the name of a block or an entire context to allow.
-- `ignore`: A list of block types that are not allowed to be added to the widget. If not specified, all block types will be available to add to the current instance of the field. You can specify either the name of a block or an entire context to ignore.
+- `allow`: An array of block types that are allowed to be added to the widget. If specified, only those block types listed will be available to add to the current instance of the field. You can define either a straight array of individual blocks to allow, or define an object with `tags` and/or `blocks` to allow whole tags or individual blocks.
+- `ignore`: A list of block types that are not allowed to be added to the widget. If not specified, all block types will be available to add to the current instance of the field. You can define either a straight array of individual blocks to ignore, or define an object with `tags` and/or `blocks` to ignore whole tags or individual blocks.
 
 Those properties allow you to limit the block types that can be added to a specific instance of the widget, which can be very helpful when building "container" type blocks that need to avoid including themselves or only support a specific set of blocks as "children".
 
 ### Examples
 
-The `button_group` block type only allows `button` blocks to be added to it:
+The `button_group` block type only allows a `button` block to be added to it:
 
 ```yaml
 buttons:
@@ -164,7 +164,7 @@ buttons:
         - button
 ```
 
-The `container` block type allows any block called `content`, or has a context of `content`, to be added to it:
+The `container` block type allows any block called `title`, or has a tag of `content`, to be added to it:
 
 ```yaml
 container:
@@ -172,7 +172,10 @@ container:
     span: full
     type: blocks
     allow:
-        - content
+        blocks:
+            - title
+        tags:
+            - content
 ```
 
 The `columns_two` block type allows every block except for itself to be added to it:
@@ -197,7 +200,7 @@ right:
 Include the following line in your layout file to include the blocks FormWidget on a Winter.Pages page:
 
 ```twig
-{variable type="blocks" name="blocks" blockContext="pages" tab="winter.pages::lang.editor.content"}{/variable}
+{variable type="blocks" name="blocks" tags="pages" tab="winter.pages::lang.editor.content"}{/variable}
 ```
 
 

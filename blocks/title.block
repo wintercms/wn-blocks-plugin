@@ -1,7 +1,7 @@
 name: winter.blocks::lang.blocks.title.name
 description: winter.blocks::lang.blocks.title.description
 icon: icon-heading
-context: ["pages"]
+tags: ["pages"]
 fields:
     content:
         label: winter.blocks::lang.blocks.title.name
