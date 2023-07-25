@@ -60,6 +60,8 @@ class Block extends CmsCompoundObject
 
         if (!empty($data['_config'])) {
             $partialData['config'] = json_decode($data['_config']);
+        } else {
+            $partialData['config'] = static::getDefaultConfig($block);
         }
 
         return (new Controller())->renderPartial($block . '.block', $partialData);
@@ -90,6 +92,8 @@ class Block extends CmsCompoundObject
 
             if (!empty($block['_config'])) {
                 $partialData['config'] = json_decode($block['_config']);
+            } else {
+                $partialData['config'] = static::getDefaultConfig($block['_group']);
             }
 
             $content .= $controller->renderPartial($block['_group'] . '.block', $partialData);
@@ -167,5 +171,25 @@ class Block extends CmsCompoundObject
         CmsException::unmask();
 
         return $this;
+    }
+
+    /**
+     * Gets the default config for the provided block, if no user-defined config is available.
+     */
+    private static function getDefaultConfig(string $block): ?array
+    {
+        $config = BlockManager::instance()->getConfig($block);
+
+        if (!array_key_exists('config', $config)) {
+            return null;
+        }
+
+        $defaults = [];
+
+        foreach ($config['config'] as $configKey => $configData) {
+            $defaults[$configKey] = $configData['default'] ?? null;
+        }
+
+        return $defaults;
     }
 }
