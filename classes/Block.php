@@ -58,6 +58,9 @@ class Block extends CmsCompoundObject
             $partialData[$key] = $value;
         }
 
+        // Allow data to be accessed via "data" key, for backwards compatibility.
+        $partialData['data'] = $partialData;
+
         if (!empty($data['_config'])) {
             $partialData['config'] = json_decode($data['_config']);
         } else {
@@ -89,6 +92,9 @@ class Block extends CmsCompoundObject
 
                 $partialData[$key] = $value;
             }
+
+            // Allow data to be accessed via "data" key, for backwards compatibility.
+            $partialData['data'] = $partialData;
 
             if (!empty($block['_config'])) {
                 $partialData['config'] = json_decode($block['_config']);
