@@ -66,6 +66,19 @@ class Plugin extends PluginBase
     }
 
     /**
+     * Registers the custom twig markups provided by this plugin
+     */
+    public function registerMarkupTags()
+    {
+        return [
+            'functions' => [
+                'renderBlock' => [\Winter\Blocks\Classes\Block::class, 'render'],
+                'renderBlocks' => [\Winter\Blocks\Classes\Block::class, 'renderAll'],
+            ],
+        ];
+    }
+
+    /**
      * Boot method, called right before the request route.
      */
     public function boot(): void

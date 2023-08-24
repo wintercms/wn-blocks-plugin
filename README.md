@@ -1,10 +1,13 @@
 # Blocks Plugin
 
+![Blocks Plugin](https://github.com/wintercms/wn-blocks-plugin/blob/main/.github/banner.png?raw=true)
+
 Provides a "block based" content management experience in Winter CMS
 
 >**NOTE:** This plugin is still in development and is likely to undergo changes. Do not use in production environments without using a version constraint in your composer.json file and carefully monitoring for breaking changes.
 
->**NOTE:** This plugin requires Winter CMS v1.2.2+ (currently unreleased, so target the `dev-develop` branch instead).
+>**NOTE:** This plugin requires Winter CMS v1.2.2 or above.
+
 
 ## Installation
 
@@ -15,6 +18,7 @@ composer require winter/wn-blocks-plugin
 ```
 
 In order to have the `actions` support function correctly, you need to load `/plugins/winter/blocks/assets/dist/js/blocks.js` after the Snowboard framework has been loaded.
+
 
 ## Core Concepts
 
@@ -30,6 +34,7 @@ This plugin also introduces the concepts of "actions"; a way to define and execu
 
 >**NOTE:** This is very much a WIP API and is subject to change. Feedback very much welcome here for ideas around how to register, manage, extend, and provide actions to the frontend.
 
+
 ## Registering Blocks
 
 Themes can have their blocks automatically registered by placing `.block` files in the `/blocks` folder and subfolders.
@@ -42,7 +47,7 @@ public function registerBlocks(): array
 {
     return [
         'example' => '$/myauthor/myplugin/blocks/example.block',
-    ],
+    ];
 }
 ```
 
@@ -54,7 +59,7 @@ public function registerBlocks(): array
 
 
 
-## Block Definition
+### Block Definition
 
 Blocks are defined as `.block` files that consist of 1 to 3 parts:
 - A YAML configuration section that defines the block's name, description, and other metadata
@@ -81,7 +86,6 @@ fields: # The form fields used to configure the block
 
 Blocks can use components in them, although they may face lifecycle limitations with complex
 AJAX handlers similar to component support in partials.
-
 
 
 ## Using the `blocks` FormWidget
@@ -136,7 +140,43 @@ Include the following line in your layout file to include the blocks FormWidget 
 
 ## Rendering Blocks
 
-For now, blocks need to be rendered through the use of a special `blocks.htm` partial that must exist in your theme:
+### Using Twig
+
+Twig functions are provided by this plugin for rendering blocks.
+You can then use the following Twig snippet to render the blocks data in your layout:
+
+```twig
+{{ renderBlocks(blocks) }}
+```
+
+You can use it anywhere an expression is accepted:
+
+```twig
+{{ ('<p>Some text</p>' ~ renderBlocks(blocks) ~ '<p>Some more text<p/>') | raw }}
+
+{% set myContent = renderBlocks(blocks) %}
+```
+
+If you need to render a single block, you can use the `renderBlock` function:
+
+```twig
+{{ renderBlock({
+    '_group':'title',
+    'content':'Lorem ipsum dolor sit amet.',
+    'alignment_x':'left',
+    'size':'h1',
+}) }}
+
+{{ renderBlock('title', {
+    'content':'Lorem ipsum dolor sit amet.',
+    'alignment_x':'left',
+    'size':'h1',
+}) }}
+```
+
+### Using a partial
+
+If you need to customize the rendering of blocks according to their group, you can use a special `blocks.htm` partial in your theme:
 
 ```twig
 {% for blockIndex, block in blocks %}
@@ -153,23 +193,41 @@ For now, blocks need to be rendered through the use of a special `blocks.htm` pa
 {% endfor %}
 ```
 
- You can then use the following Twig snippet to render the block data in your layout:
+You can then use the following Twig snippet to render the block data in your layout:
 
 ```twig
 {% partial 'blocks' blocks=blocks %}
 ```
 
-### Desired Rendering API
+### Using PHP
 
-The following is an example of the desired API for rendering blocks:
+```php
+use Winter\Blocks\Classes\Block;
 
-```twig
-{% blocks blocks=this.theme.footer_blocks %}
+// Render a single block from stored data
+Block::render($model->blocks[0]);
+
+// Render an array of blocks from stored data
+Block::renderAll($model->blocks);
+
+// Render a single block manually
+Block::render('title', [
+    'content' => 'Lorem ipsum dolor sit amet.',
+    'alignment_x' => 'left',
+    'size' => 'h1',
+]);
+
+// Render a single block manually using only array data
+Block::render([
+    '_group' => 'title',
+    'content' => 'Lorem ipsum dolor sit amet.',
+    'alignment_x' => 'left',
+    'size' => 'h1',
+]);
 ```
 
-Other ideas and suggestions are welcome.
 
-### Integrating with TailwindCSS / CSS Purging
+## Integrating with TailwindCSS / CSS Purging
 
 If your theme uses CSS class purging (i.e. Tailwind), it can be useful to add the following paths to your build configuration to include the styles for any blocks defined by the theme or plugins.
 
@@ -178,19 +236,19 @@ If your theme uses CSS class purging (i.e. Tailwind), it can be useful to add th
 module.exports = {
     content: [
         // Winter.Pages static page content
-        './content/**/*.htm',           
+        './content/**/*.htm',
         './layouts/**/*.htm',
         './pages/**/*.htm',
         './partials/**/*.htm',
         './blocks/**/*.block',
-        
+
         // Blocks provided by plugins
         '../../plugins/*/*/blocks/*.block',
     ],
 };
-``` 
+```
 
 
-### Feedback
+## Feedback
 
 > The Winter.Blocks is perfect for my block-based themes. I've been looking for something like this for a long time

@@ -1,6 +1,6 @@
 name: winter.blocks::lang.blocks.columns_two.name
 description: winter.blocks::lang.blocks.columns_two.description
-icon: icon-th-large
+icon: icon-table-columns
 context: ["pages"]
 fields:
     left:

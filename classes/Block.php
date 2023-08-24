@@ -35,6 +35,42 @@ class Block extends CmsCompoundObject
     }
 
     /**
+     * Renders the provided block
+     */
+    public static function render(string|array $block, array $data = []): string
+    {
+        if (is_array($block)) {
+            $data = $block;
+            $block = $data['_group'] ?? false;
+        }
+        
+        if (empty($block)) {
+            throw new SystemException("The block name was not provided");
+        }
+
+        return (new Controller())->renderPartial($block . '.block', ['data' => $data]);
+    }
+
+    /**
+     * Renders the provided blocks
+     */
+    public static function renderAll(array $blocks): string
+    {
+        $content = '';
+        $controller = (new Controller());
+
+        foreach ($blocks as $i => $block) {
+            if (!array_key_exists('_group', $block)) {
+                throw new SystemException("The block definition at index $i must contain a `_group` key.");
+            }
+
+            $content .= $controller->renderPartial($block['_group'] . '.block', ['data' => $block]);
+        }
+
+        return $content;
+    }
+
+    /**
      * Returns name of a PHP class to us a parent for the PHP class created for the object's PHP section.
      */
     public function getCodeClassParent(): string
