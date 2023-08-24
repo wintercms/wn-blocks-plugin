@@ -2,8 +2,8 @@
 
 namespace Winter\Blocks\Classes;
 
-use Yaml;
 use Winter\Storm\Halcyon\Processors\SectionParser;
+use Yaml;
 
 /**
  * Parses a block file into its component parts.

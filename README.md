@@ -1,5 +1,7 @@
 # Blocks Plugin
 
+![Blocks Plugin](https://github.com/wintercms/wn-blocks-plugin/blob/main/.github/banner.png?raw=true)
+
 Provides a "block based" content management experience in Winter CMS
 
 >**NOTE:** This plugin is still in development and is likely to undergo changes. Do not use in production environments without using a version constraint in your composer.json file and carefully monitoring for breaking changes.

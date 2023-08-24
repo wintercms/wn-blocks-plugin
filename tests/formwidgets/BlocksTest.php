@@ -2,10 +2,10 @@
 
 namespace Winter\Blocks\Tests\FormWidgets;
 
-use Cms\Classes\Theme;
 use Backend\Classes\Controller;
 use Backend\Classes\FormField;
 use Backend\Widgets\Form;
+use Cms\Classes\Theme;
 use System\Tests\Bootstrap\PluginTestCase;
 use Winter\Blocks\Classes\BlockManager;
 use Winter\Blocks\FormWidgets\Blocks;

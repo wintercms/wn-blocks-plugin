@@ -2,9 +2,8 @@
 
 namespace Winter\Blocks\FormWidgets;
 
-use Lang;
 use Backend\FormWidgets\Repeater;
-use Illuminate\Support\Arr;
+use Lang;
 use Winter\Blocks\Classes\BlockManager;
 use Winter\Storm\Exception\ApplicationException;
 

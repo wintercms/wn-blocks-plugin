@@ -2,8 +2,8 @@
 
 namespace Winter\Blocks\Tests;
 
-use Winter\Blocks\Plugin;
 use System\Tests\Bootstrap\PluginTestCase;
+use Winter\Blocks\Plugin;
 
 /**
  * @testdox Plugin definition class (Winter\Blocks\Plugin)
@@ -36,7 +36,7 @@ class PluginTest extends PluginTestCase
 
     public function testRegistersPermissions()
     {
-        $this->markTestIncomplete('Permissions are not being set yet');
+        $this->markTestSkipped('Permissions have not been implemented yet.');
 
         $permissions = $this->plugin->registerPermissions();
 

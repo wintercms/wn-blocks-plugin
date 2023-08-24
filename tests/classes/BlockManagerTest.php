@@ -2,12 +2,8 @@
 
 namespace Winter\Blocks\Tests\Classes;
 
-use Cms\Classes\CmsObjectCollection;
-use Cms\Classes\Theme;
-use Winter\Blocks\Classes\BlockManager;
 use System\Tests\Bootstrap\PluginTestCase;
-use Winter\Storm\Support\Facades\Config;
-use Winter\Storm\Support\Facades\Event;
+use Winter\Blocks\Classes\BlockManager;
 
 /**
  * @testdox Block manager (Winter\Blocks\Classes\BlockManager)
