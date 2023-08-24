@@ -13,7 +13,8 @@
             <directory>./tests</directory>
         </testsuite>
     </testsuites>
-    <coverage>
+    <coverage cacheDirectory=".phpunit.cache/code-coverage"
+              processUncoveredFiles="true">
         <include>
             <directory suffix=".php">classes</directory>
             <directory suffix=".php">formwidgets</directory>
