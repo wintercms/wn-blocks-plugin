@@ -71,8 +71,8 @@ class Blocks extends Repeater
 
     /**
      * Splices in some meta data (group and index values) to the dataset.
-     * @param array $value
-     * @return array
+     * @param array|mixed $value
+     * @return array|mixed
      */
     protected function processSaveValue($value)
     {
@@ -80,11 +80,21 @@ class Blocks extends Repeater
             return $value;
         }
 
-        if ($this->minItems && count($value) < $this->minItems) {
-            throw new ApplicationException(Lang::get('backend::lang.repeater.min_items_failed', ['name' => $this->fieldName, 'min' => $this->minItems, 'items' => count($value)]));
+        $count = count($value);
+
+        if ($this->minItems && $count < $this->minItems) {
+            throw new ApplicationException(Lang::get('backend::lang.repeater.min_items_failed', [
+                'name' => $this->fieldName,
+                'min' => $this->minItems,
+                'items' => $count,
+            ]));
         }
-        if ($this->maxItems && count($value) > $this->maxItems) {
-            throw new ApplicationException(Lang::get('backend::lang.repeater.max_items_failed', ['name' => $this->fieldName, 'max' => $this->maxItems, 'items' => count($value)]));
+        if ($this->maxItems && $count > $this->maxItems) {
+            throw new ApplicationException(Lang::get('backend::lang.repeater.max_items_failed', [
+                'name' => $this->fieldName,
+                'max' => $this->maxItems,
+                'items' => $count,
+            ]));
         }
 
         /*
@@ -217,39 +227,42 @@ class Blocks extends Repeater
 
     /**
      * Determines if a block is allowed according to the widget's ignore/allow list.
-     *
-     * @param string $code
-     * @param array|string $blockTags
-     * @return boolean
      */
-    protected function isBlockAllowed(string $code, array|string $blockTags)
+    protected function isBlockAllowed(string $code, array|string $blockTags): bool
     {
-        $blockTags = (is_array($blockTags)) ? $blockTags : [$blockTags];
+        $blockTags = is_array($blockTags) ? $blockTags : [$blockTags];
 
         if (isset($this->ignore['blocks']) || isset($this->ignore['tags'])) {
-            $ignoredBlocks = (isset($this->ignore['blocks'])) ? $this->ignore['blocks'] : [];
-            $ignoredTags = (isset($this->ignore['tags'])) ? $this->ignore['tags'] : [];
+            $ignoredBlocks = isset($this->ignore['blocks']) ? $this->ignore['blocks'] : [];
+            $ignoredTags = isset($this->ignore['tags']) ? $this->ignore['tags'] : [];
         } else {
             $ignoredBlocks = $this->ignore;
             $ignoredTags = [];
         }
         if (isset($this->allow['blocks']) || isset($this->allow['tags'])) {
-            $allowedBlocks = (isset($this->allow['blocks'])) ? $this->allow['blocks'] : [];
-            $allowedTags = (isset($this->allow['tags'])) ? $this->allow['tags'] : [];
+            $allowedBlocks = isset($this->allow['blocks']) ? $this->allow['blocks'] : [];
+            $allowedTags = isset($this->allow['tags']) ? $this->allow['tags'] : [];
         } else {
             $allowedBlocks = $this->allow;
             $allowedTags = [];
         }
 
+        // Reject explicitly ignored blocks
         if (count($ignoredBlocks) && in_array($code, $ignoredBlocks)) {
             return false;
         }
+
+        // Reject blocks that have any ignored tags
         if (count($ignoredTags) && array_intersect($blockTags, $ignoredTags)) {
             return false;
         }
+
+        // Reject blocks that are not explicitly allowed
         if (count($allowedBlocks) && !in_array($code, $allowedBlocks)) {
             return false;
         }
+
+        // Reject blocks that do not have any allowed tags
         if (count($allowedTags) && !array_intersect($blockTags, $allowedTags)) {
             return false;
         }
@@ -270,7 +283,7 @@ class Blocks extends Repeater
      */
     public function getGroupDescription(string $groupCode): ?string
     {
-        return array_get($this->groupDefinitions, $groupCode.'.description');
+        return array_get($this->groupDefinitions, $groupCode . '.description');
     }
 
     /**
@@ -278,7 +291,7 @@ class Blocks extends Repeater
      */
     public function getGroupIcon(string $groupCode): ?string
     {
-        return array_get($this->groupDefinitions, $groupCode.'.icon');
+        return array_get($this->groupDefinitions, $groupCode . '.icon');
     }
 
     /**
