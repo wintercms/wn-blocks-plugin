@@ -8,4 +8,4 @@ fields:
         type: codeeditor
         language: html
 ==
-{{ data.content | raw }}
+{{ content | raw }}

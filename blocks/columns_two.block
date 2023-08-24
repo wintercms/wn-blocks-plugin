@@ -18,9 +18,9 @@ fields:
 ==
 <div class="grid grid-cols-1 md:grid-cols-2 md:mt-0 mt-5 gap-10 md:gap-4">
     <div>
-        {% partial 'blocks' blocks=data.left %}
+        {{ renderBlocks(left) }}
     </div>
     <div>
-        {% partial 'blocks' blocks=data.right %}
+        {{ renderBlocks(right) }}
     </div>
 </div>

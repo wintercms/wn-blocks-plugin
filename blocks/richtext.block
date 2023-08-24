@@ -4,10 +4,10 @@ icon: icon-pencil-square-o
 tags: ["pages"]
 fields:
     content:
-        label: winter.blocks::lang.fields.content
+        placeholder: winter.blocks::lang.fields.content
         span: full
         type: richeditor
 ==
 <div class="prose lg:prose-xl">
-    {{ data.content | raw }}
+    {{ content | raw }}
 </div>

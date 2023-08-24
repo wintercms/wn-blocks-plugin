@@ -135,12 +135,10 @@ config:
     {% set alignment = 'text-right' %}
 {% endif %}
 
-<{{ config.size | default('h2') }} class="{{ alignment }}">
+<{{ config.size }} class="{{ alignment }}">
     {{ content }}
-</{{ config.size | default('h2') }}>
+</{{ config.size }}>
 ```
-
-> **NOTE:** With `config` options, these must always be treated as "optional" due to limitations with the Inspector widget. The Inpsector widget only populates values in the block when they are changed. Always have a fallback in your Twig content.
 
 ## Using the `blocks` FormWidget
 
@@ -251,11 +249,11 @@ If you need to customize the rendering of blocks according to their group, you c
 {% for blockIndex, block in blocks %}
     {# Adding blocks to the following array allows them to implement their own containers #}
     {% if block._group in ["hero", "section"] %}
-        {% partial block._group ~ ".block" data=block blockIndex=blockIndex %}
+        {{ renderBlock(block) }}
     {% else %}
         <section class="flex flex-wrap items-center mx-auto max-w-screen-xl">
             <div class="w-full p-4">
-                {% partial block._group ~ ".block" data=block blockIndex=blockIndex %}
+                {{ renderBlock(block) }}
             </div>
         </section>
     {% endif %}

@@ -9,6 +9,7 @@ fields:
         type: blocks
         allow:
             - button
+config:
     position:
         label: winter.blocks::lang.blocks.button_group.position
         span: left
@@ -27,9 +28,9 @@ fields:
             "w-full": winter.blocks::lang.blocks.button_group.width_full
             "w-auto": winter.blocks::lang.blocks.button_group.width_auto
 ==
-<div class="flex {{ data.position }} pb-4 space-x-4 w-full">
-    {% for button in data.buttons %}
-        {% set button = button | merge({'width': data.width}) %}
-        {% partial "button.block" data=button %}
+<div class="flex {{ config.position }} pb-4 space-x-4 w-full">
+    {% for button in buttons %}
+        {% set button = button | merge({'width': config.width, _group: 'button'}) %}
+        {{ renderBlock(button) }}
     {% endfor %}
 </div>

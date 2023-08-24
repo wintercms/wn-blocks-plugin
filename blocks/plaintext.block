@@ -4,11 +4,11 @@ icon: icon-font
 tags: ["pages"]
 fields:
     content:
-        label: winter.blocks::lang.fields.content
+        placeholder: winter.blocks::lang.fields.content
         span: full
         type: textarea
         size: small
 ==
 <p>
-    {{ data.content }}
+    {{ content }}
 </p>

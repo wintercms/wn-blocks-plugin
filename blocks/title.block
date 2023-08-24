@@ -4,27 +4,28 @@ icon: icon-heading
 tags: ["pages"]
 fields:
     content:
-        label: winter.blocks::lang.blocks.title.name
+        placeholder: winter.blocks::lang.blocks.title.name
         span: full
         type: text
+config:
     size:
         label: winter.blocks::lang.fields.size
         span: auto
         type: balloon-selector
         default: h2
         options:
-            h4: winter.blocks::lang.blocks.title.size.h4
-            h3: winter.blocks::lang.blocks.title.size.h3
             h2: winter.blocks::lang.blocks.title.size.h2
+            h3: winter.blocks::lang.blocks.title.size.h3
+            h4: winter.blocks::lang.blocks.title.size.h4
     alignment_x:
         label: winter.blocks::lang.fields.alignment_x.label
         span: auto
         type: balloon-selector
-        default: center
+        default: inherit
         options:
+            inherit: winter.blocks::lang.fields.default
             left: winter.blocks::lang.fields.alignment_x.left
             center: winter.blocks::lang.fields.alignment_x.center
             right: winter.blocks::lang.fields.alignment_x.right
 ==
-{# @TODO: Fix this to use the default provided in the config #}
-<{{ data.size ? data.size : "h2" }} style="text-align: {{ data.alignment_x | default('inherit') }};">{{ data.content }}</{{ data.size ? data.size : "h2" }}>
+<{{ config.size }} style="text-align: {{ config.alignment_x }};">{{ content }}</{{ config.size }}>

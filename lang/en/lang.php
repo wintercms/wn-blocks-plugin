@@ -104,6 +104,7 @@ return [
         'icon' => 'Icon',
         'label' => 'Label',
         'size' => 'Size',
+        'default' => 'Default',
         'alignment_x' => [
             'label' => 'Horizontal Alignment',
             'left' => 'Left',
