@@ -43,12 +43,31 @@ class Block extends CmsCompoundObject
             $data = $block;
             $block = $data['_group'] ?? false;
         }
-        
+
         if (empty($block)) {
             throw new SystemException("The block name was not provided");
         }
 
-        return (new Controller())->renderPartial($block . '.block', ['data' => $data]);
+        $partialData = [];
+
+        foreach ($data as $key => $value) {
+            if (in_array($key, ['_group', '_config'])) {
+                continue;
+            }
+
+            $partialData[$key] = $value;
+        }
+
+        // Allow data to be accessed via "data" key, for backwards compatibility.
+        $partialData['data'] = $partialData;
+
+        if (!empty($data['_config'])) {
+            $partialData['config'] = json_decode($data['_config']);
+        } else {
+            $partialData['config'] = static::getDefaultConfig($block);
+        }
+
+        return (new Controller())->renderPartial($block . '.block', $partialData);
     }
 
     /**
@@ -64,7 +83,26 @@ class Block extends CmsCompoundObject
                 throw new SystemException("The block definition at index $i must contain a `_group` key.");
             }
 
-            $content .= $controller->renderPartial($block['_group'] . '.block', ['data' => $block]);
+            $partialData = [];
+
+            foreach ($block as $key => $value) {
+                if (in_array($key, ['_group', '_config'])) {
+                    continue;
+                }
+
+                $partialData[$key] = $value;
+            }
+
+            // Allow data to be accessed via "data" key, for backwards compatibility.
+            $partialData['data'] = $partialData;
+
+            if (!empty($block['_config'])) {
+                $partialData['config'] = json_decode($block['_config']);
+            } else {
+                $partialData['config'] = static::getDefaultConfig($block['_group']);
+            }
+
+            $content .= $controller->renderPartial($block['_group'] . '.block', $partialData);
         }
 
         return $content;
@@ -139,5 +177,25 @@ class Block extends CmsCompoundObject
         CmsException::unmask();
 
         return $this;
+    }
+
+    /**
+     * Gets the default config for the provided block, if no user-defined config is available.
+     */
+    private static function getDefaultConfig(string $block): ?array
+    {
+        $config = BlockManager::instance()->getConfig($block);
+
+        if (!array_key_exists('config', $config)) {
+            return null;
+        }
+
+        $defaults = [];
+
+        foreach ($config['config'] as $configKey => $configData) {
+            $defaults[$configKey] = $configData['default'] ?? null;
+        }
+
+        return $defaults;
     }
 }

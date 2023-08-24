@@ -4,8 +4,8 @@ namespace Winter\Blocks\FormWidgets;
 
 use Backend\Classes\FormField;
 use Backend\Classes\FormWidgetBase;
-use Winter\Blocks\Classes\BlockManager;
 use Cms\Classes\Controller;
+use Winter\Blocks\Classes\BlockManager;
 use Winter\Storm\Support\Str;
 
 /**

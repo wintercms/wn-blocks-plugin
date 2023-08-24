@@ -1,0 +1,321 @@
+// out: false
+
+@import "../../../../../../../modules/backend/assets/less/core/boot.less";
+
+.field-blocks {
+    padding-top: 5px;
+
+    .field-repeater-items {
+        counter-reset: repeater-index-counter;
+    }
+
+    ul.field-repeater-items,
+    li.field-repeater-item {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+
+    ul.field-repeater-items > li {
+        &.dragged {
+            opacity: .7;
+            position: absolute;
+            padding-top: 15px;
+            padding-right: 15px;
+            z-index: 2000;
+            background-color: @body-bg;
+            border: 1px dashed #dbdee0;
+
+            .repeater-item-remove {
+                opacity: 0;
+            }
+
+            .repeater-item-collapsed-title {
+                top: 5px;
+            }
+        }
+
+        &.placeholder {
+            display: block;
+            position: relative;
+            height: 25px;
+            margin-bottom: 5px;
+            &:before {
+                display: block;
+                position: absolute;
+                .icon(@chevron-right);
+                color: #d35714;
+                left: -10px;
+                top: 8px;
+                z-index: 2000;
+            }
+        }
+    }
+
+    li.field-repeater-item {
+        position: relative;
+        margin: 0 0 1em !important;
+        padding: 3.5em 1.25em 0 1.25em !important;
+        border: 1px solid @input-border;
+        border-radius: @border-radius-base;
+        background: @body-bg;
+        min-height: 30px;
+
+        &.collapsed,
+        &.empty {
+            padding: 0 !important;
+
+            .field-repeater-form {
+                display:none;
+            }
+
+            .repeater-item-collapse {
+                .repeater-item-collapse-one {
+                    .transform(rotate(180deg));
+                }
+            }
+
+            .repeater-item-title {
+                display: inline-block;
+                border-bottom: none;
+                border-bottom-right-radius: 0;
+                border-bottom-left-radius: @border-radius-base;
+                height: 100%;
+            }
+
+            > .repeater-item-collapse,
+            > .repeater-item-remove {
+                opacity: 1;
+            }
+        }
+
+        .repeater-item-collapse {
+            position: absolute;
+            top: 5px;
+            right: 30px;
+            z-index: 90;
+            opacity: 0;
+            .transition(~'opacity 0.5s');
+
+            a, button {
+                .transition(~'transform 0.3s');
+                color: #bdc3c7;
+                line-height: 20px;
+                display: block;
+                font-size: 12px;
+
+                &:hover,
+                &:focus {
+                    color: #999;
+                    text-decoration: none;
+                }
+            }
+        }
+
+        .repeater-item-remove {
+            position: absolute;
+            top: 4px;
+            right: 5px;
+            z-index: 90;
+            opacity: 0;
+            .transition(~'opacity 0.5s');
+
+            &.disabled {
+                display: none;
+
+                + .repeater-item-collapse {
+                    right: 7px;
+                }
+            }
+
+            .close {
+                float: none;
+                display: inline-block;
+            }
+        }
+
+        .block-config {
+            position: absolute;
+            top: 4px;
+            right: 60px;
+            z-index: 90;
+            opacity: 0;
+            .transition(~'opacity 0.5s');
+
+            color: #bdc3c7;
+            line-height: 20px;
+            display: block;
+            font-size: 12px;
+
+            &:hover,
+            &:focus,
+            &.inspector-open {
+                color: #999;
+                text-decoration: none;
+            }
+        }
+
+        .repeater-item-collapse,
+        .repeater-item-remove {
+            width: 20px;
+            height: 20px;
+            text-align: center;
+
+            > button,
+            > a {
+                outline: none;
+            }
+        }
+
+        .repeater-item-title {
+            position: absolute;
+            font-size: 13px;
+            top: 0px;
+            left: 0px;
+            padding: 4px 8px;
+            border-bottom: 1px solid @input-border;
+            border-right: 1px solid @input-border;
+            border-top-left-radius: @border-radius-base;
+            border-bottom-right-radius: @border-radius-base;
+            background: #fff;
+            color: fadeout(@input-color, 50);
+
+            > .icon {
+                margin-right: 4px;
+            }
+        }
+
+        .repeater-item-handle {
+            cursor: move;
+        }
+
+        &.hover {
+            border: 1px solid #999;
+
+            > .repeater-item-title {
+                color: #999;
+                border-color: #999;
+            }
+        }
+
+        &.focus {
+            border: 1px solid @highlight-hover-bg !important;
+
+            > .repeater-item-title {
+                color: @highlight-hover-bg !important;
+                border-color: @highlight-hover-bg !important;
+            }
+        }
+
+        &.hover,
+        &.focus {
+            > .block-config,
+            > .repeater-item-collapse,
+            > .repeater-item-handle,
+            > .repeater-item-remove {
+                opacity: 1;
+            }
+        }
+
+        @media (hover: none) {
+            > .block-config,
+            > .repeater-item-collapse,
+            > .repeater-item-handle,
+            > .repeater-item-remove {
+                opacity: 1 !important;
+            }
+        }
+
+        .field-repeater-form {
+            position: relative;
+            top: -7px;
+            .clearfix;
+
+            .form-group.span-left,
+            .form-group.span-right {
+                width: 49.5%;
+            }
+        }
+    }
+
+    .field-repeater-add-item {
+        position: relative;
+        margin-top: 10px;
+
+        > a {
+            border: 1px dashed #bdc3c7;
+            border-radius: 5px;
+            color: #bdc3c7;
+            text-align: center;
+            display: block;
+            text-decoration: none;
+            padding: 13px 15px;
+            text-transform: uppercase;
+            font-weight: 600;
+            font-size: @font-size-base - 2;
+            outline: none;
+            .transition(~'border-color 0.5s, color 0.5s');
+
+            &:hover, &:focus {
+                border-color: @highlight-hover-bg;
+                color: @highlight-hover-bg;
+            }
+
+            &:active {
+                border-color: @highlight-active-bg;
+                color: @highlight-active-bg;
+            }
+        }
+
+        &.in-progress > a {
+            border-color: #e0e0e0 !important;
+            background: transparent !important;
+        }
+    }
+
+    &[data-mode="grid"] {
+        ul.field-repeater-items {
+            display: grid;
+            gap: 20px;
+
+            .field-repeater-item {
+                margin-bottom: 0 !important;
+            }
+
+            .field-repeater-add-item {
+                margin-top: 0;
+
+                a {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    height: 100%;
+                }
+
+                &:before {
+                    display: none;
+                }
+            }
+
+            .block-config {
+                right: 30px;
+            }
+        }
+
+        &[data-columns="2"] ul.field-repeater-items {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        &[data-columns="3"] ul.field-repeater-items {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        &[data-columns="4"] ul.field-repeater-items {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        &[data-columns="5"] ul.field-repeater-items {
+            grid-template-columns: repeat(5, 1fr);
+        }
+        &[data-columns="6"] ul.field-repeater-items {
+            grid-template-columns: repeat(6, 1fr);
+        }
+    }
+}

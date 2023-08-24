@@ -1,0 +1,9 @@
+name: Title
+description: Title block
+icon: icon-text-width
+tags: ["content"]
+fields:
+    content:
+        label: false
+        type: text
+==

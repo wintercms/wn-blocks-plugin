@@ -1,16 +1,17 @@
 name: winter.blocks::lang.blocks.image.name
 description: winter.blocks::lang.blocks.image.description
 icon: icon-picture-o
-context: ["pages"]
+tags: ["pages"]
 fields:
     image:
         type: mediafinder
-        span: left
+        span: full
         mode: image
     alt_text:
         label: winter.blocks::lang.blocks.image.alt_text
-        span: right
+        span: full
         type: text
+config:
     size:
         label: winter.blocks::lang.fields.size
         span: right
@@ -24,5 +25,5 @@ fields:
             "w-1/4": 'winter.blocks::lang.blocks.image.size.w-1/4'
 ==
 <div class="block">
-    <img class="mx-auto {{ data.size }}" src="{{ data.image | media }}" alt="{{ data.alt_text }}">
+    <img class="mx-auto {{ config.size }}" src="{{ image | media }}" alt="{{ alt_text }}">
 </div>

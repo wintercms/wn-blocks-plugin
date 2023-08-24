@@ -1,0 +1,12 @@
+name: Container
+description: Container block
+icon: icon-square
+tags: ["containers"]
+fields:
+    contents:
+        label: false
+        type: blocks
+        span: full
+        allow:
+            - contents
+==

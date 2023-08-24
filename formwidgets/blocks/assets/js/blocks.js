@@ -2,16 +2,15 @@
  * Blocks FormWidget plugin
  *
  * @TODO:
- * - Rename to prevent conflicts with the Repeater codebase
  * - Remove functionality not used by the Blocks FormWidget
  * - Potentially switch to Editor.js?
  *
  * Data attributes:
- * - data-control="fieldrepeater" - enables the plugin on an element
+ * - data-control="fieldblocks" - enables the plugin on an element
  * - data-option="value" - an option with a value
  *
  * JavaScript API:
- * $('a#someElement').fieldRepeater({...})
+ * $('a#someElement').fieldBlocks({...})
  */
 
 +function ($) { "use strict";
@@ -22,7 +21,7 @@
     // FIELD REPEATER CLASS DEFINITION
     // ============================
 
-    var Repeater = function(element, options) {
+    var Blocks = function(element, options) {
         this.options   = options
         this.$el       = $(element)
         if (this.options.sortable) {
@@ -34,28 +33,33 @@
         this.init()
     }
 
-    Repeater.prototype = Object.create(BaseProto)
-    Repeater.prototype.constructor = Repeater
+    Blocks.prototype = Object.create(BaseProto)
+    Blocks.prototype.constructor = Blocks
 
-    Repeater.DEFAULTS = {
+    Blocks.DEFAULTS = {
         sortableHandle: '.repeater-item-handle',
         sortableContainer: 'ul.field-repeater-items',
         titleFrom: null,
         minItems: null,
         maxItems: null,
         sortable: false,
+        mode: 'list',
         style: 'default',
     }
 
-    Repeater.prototype.init = function() {
+    Blocks.prototype.init = function() {
         if (this.options.sortable) {
             this.bindSorting()
         }
 
         this.$el.on('ajaxDone', '> .field-repeater-items > .field-repeater-item > .repeater-item-remove > [data-repeater-remove]', this.proxy(this.onRemoveItemSuccess))
-        this.$el.on('ajaxDone', '> .field-repeater-add-item > [data-repeater-add]', this.proxy(this.onAddItemSuccess))
+        this.$el.on('ajaxDone', '> .field-repeater-items > .field-repeater-add-item > [data-repeater-add]', this.proxy(this.onAddItemSuccess))
         this.$el.on('click', '> ul > li > .repeater-item-collapse .repeater-item-collapse-one', this.proxy(this.toggleCollapse))
-        this.$el.on('click', '> .field-repeater-add-item > [data-repeater-add-group]', this.proxy(this.clickAddGroupButton))
+        this.$el.on('click', '> .field-repeater-items > .field-repeater-add-item > [data-repeater-add-group]', this.proxy(this.clickAddGroupButton))
+        this.$el.on('mouseover', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemMouseOver))
+        this.$el.on('mouseout', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemMouseOut))
+        this.$el.on('focus', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemFocus))
+        this.$el.on('blur', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemBlur))
 
         this.$el.one('dispose-control', this.proxy(this.dispose))
 
@@ -63,18 +67,22 @@
         this.applyStyle()
     }
 
-    Repeater.prototype.dispose = function() {
+    Blocks.prototype.dispose = function() {
         if (this.options.sortable) {
             this.$sortable.sortable('destroy')
         }
 
         this.$el.off('ajaxDone', '> .field-repeater-items > .field-repeater-item > .repeater-item-remove > [data-repeater-remove]', this.proxy(this.onRemoveItemSuccess))
-        this.$el.off('ajaxDone', '> .field-repeater-add-item > [data-repeater-add]', this.proxy(this.onAddItemSuccess))
-        this.$el.off('click', '> .field-repeater-items > .field-repeater-item > .repeater-item-collapse .repeater-item-collapse-one', this.proxy(this.toggleCollapse))
-        this.$el.off('click', '> .field-repeater-add-item > [data-repeater-add-group]', this.proxy(this.clickAddGroupButton))
+        this.$el.off('ajaxDone', '> .field-repeater-items > .field-repeater-add-item > [data-repeater-add]', this.proxy(this.onAddItemSuccess))
+        this.$el.off('click', '> ul > li > .repeater-item-collapse .repeater-item-collapse-one', this.proxy(this.toggleCollapse))
+        this.$el.off('click', '> .field-repeater-items > .field-repeater-add-item > [data-repeater-add-group]', this.proxy(this.clickAddGroupButton))
+        this.$el.off('mouseover', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemMouseOver))
+        this.$el.off('mouseout', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemMouseOut))
+        this.$el.off('focus', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemFocus))
+        this.$el.off('blur', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemBlur))
 
         this.$el.off('dispose-control', this.proxy(this.dispose))
-        this.$el.removeData('oc.repeater')
+        this.$el.removeData('wn.blocks')
 
         this.$el = null
         this.$sortable = null
@@ -84,21 +92,22 @@
     }
 
     // Deprecated
-    Repeater.prototype.unbind = function() {
+    Blocks.prototype.unbind = function() {
         this.dispose()
     }
 
-    Repeater.prototype.bindSorting = function() {
+    Blocks.prototype.bindSorting = function() {
         var sortableOptions = {
             handle: this.options.sortableHandle,
-            nested: false
+            nested: false,
+            vertical: this.options.mode === 'list',
         }
 
         this.$sortable.sortable(sortableOptions)
     }
 
-    Repeater.prototype.clickAddGroupButton = function(ev) {
-        var $self = this;
+    Blocks.prototype.clickAddGroupButton = function(ev) {
+        var $self = this
         var templateHtml = $('> [data-group-palette-template]', this.$el).html(),
             $target = $(ev.target),
             $form = this.$el.closest('form'),
@@ -120,16 +129,21 @@
             .on('ajaxPromise', '[data-repeater-add]', function(ev, context) {
                 $loadContainer.loadIndicator()
 
-                $form.one('ajaxComplete', function() {
+                $(window).one('ajaxUpdateComplete', function() {
                     $loadContainer.loadIndicator('hide')
                     $self.togglePrompt()
+                    $($self.$el).find('.field-repeater-items > .field-repeater-add-item').each(function () {
+                        if ($(this).children().length === 0) {
+                            $(this).remove()
+                        }
+                    })
                 })
             })
 
         $('[data-repeater-add]', $container).data('request-form', $form)
     }
 
-    Repeater.prototype.onRemoveItemSuccess = function(ev) {
+    Blocks.prototype.onRemoveItemSuccess = function(ev) {
         var $target = $(ev.target)
 
         // Allow any widgets inside a deleted item to be disposed
@@ -148,15 +162,22 @@
         this.togglePrompt()
     }
 
-    Repeater.prototype.onAddItemSuccess = function(ev) {
-        this.togglePrompt()
-        $(ev.target).closest('[data-field-name]').trigger('change.oc.formwidget')
+    Blocks.prototype.onAddItemSuccess = function(ev) {
+        window.requestAnimationFrame(() => {
+            this.togglePrompt()
+            $(ev.target).closest('[data-field-name]').trigger('change.oc.formwidget')
+            $(this.$el).find('.field-repeater-items > .field-repeater-add-item').each(function () {
+                if ($(this).children().length === 0) {
+                    $(this).remove()
+                }
+            })
+        })
     }
 
-    Repeater.prototype.togglePrompt = function () {
+    Blocks.prototype.togglePrompt = function () {
         if (this.options.minItems && this.options.minItems > 0) {
             var repeatedItems = this.$el.find('> .field-repeater-items > .field-repeater-item').length,
-                $removeItemBtn = this.$el.find('> .field-repeater-items > .field-repeater-item > .repeater-item-remove');
+                $removeItemBtn = this.$el.find('> .field-repeater-items > .field-repeater-item > .repeater-item-remove')
 
             $removeItemBtn.toggleClass('disabled', !(repeatedItems > this.options.minItems))
         }
@@ -169,7 +190,7 @@
         }
     }
 
-    Repeater.prototype.toggleCollapse = function(ev) {
+    Blocks.prototype.toggleCollapse = function(ev) {
         var $item = $(ev.target).closest('.field-repeater-item'),
             isCollapsed = $item.hasClass('collapsed')
 
@@ -190,7 +211,7 @@
         }
     }
 
-    Repeater.prototype.collapseAll = function() {
+    Blocks.prototype.collapseAll = function() {
         var self = this,
             items = $(this.$el).children('.field-repeater-items').children('.field-repeater-item')
 
@@ -199,7 +220,7 @@
         })
     }
 
-    Repeater.prototype.expandAll = function() {
+    Blocks.prototype.expandAll = function() {
         var self = this,
             items = $(this.$el).children('.field-repeater-items').children('.field-repeater-item')
 
@@ -208,19 +229,19 @@
         })
     }
 
-    Repeater.prototype.collapse = function($item) {
+    Blocks.prototype.collapse = function($item) {
         $item.addClass('collapsed')
-        $('.repeater-item-collapsed-title', $item).text(this.getCollapseTitle($item));
+        $('.repeater-item-collapsed-title', $item).text(this.getCollapseTitle($item))
     }
 
-    Repeater.prototype.expand = function($item) {
+    Blocks.prototype.expand = function($item) {
         if (this.getStyle() === 'accordion') {
             this.collapseAll()
         }
         $item.removeClass('collapsed')
     }
 
-    Repeater.prototype.getCollapseTitle = function($item) {
+    Blocks.prototype.getCollapseTitle = function($item) {
         var $target,
             defaultText = '',
             explicitText = $item.data('collapse-title')
@@ -239,13 +260,13 @@
             $target = $item
         }
 
-        var $textInput = $('input[type=text]:first, select:first', $target).first();
+        var $textInput = $('input[type=text]:first, select:first', $target).first()
         if ($textInput.length) {
             switch($textInput.prop("tagName")) {
                 case 'SELECT':
-                    return $textInput.find('option:selected').text();
+                    return $textInput.find('option:selected').text()
                 default:
-                    return $textInput.val();
+                    return $textInput.val()
             }
         } else {
             var $disabledTextInput = $('.text-field:first > .form-control', $target)
@@ -257,18 +278,22 @@
         return defaultText
     }
 
-    Repeater.prototype.getStyle = function() {
-        var style = 'default';
+    Blocks.prototype.getStyle = function() {
+        var style = 'default'
 
         // Validate style
         if (this.options.style && ['collapsed', 'accordion'].indexOf(this.options.style) !== -1) {
             style = this.options.style
         }
 
-        return style;
+        return style
     }
 
-    Repeater.prototype.applyStyle = function() {
+    Blocks.prototype.applyStyle = function() {
+        if (this.options.mode === 'grid') {
+            return
+        }
+
         var style = this.getStyle(),
             self = this,
             items = $(this.$el).children('.field-repeater-items').children('.field-repeater-item')
@@ -287,18 +312,47 @@
         })
     }
 
+    Blocks.prototype.onItemMouseOver = function(event) {
+        event.stopPropagation()
+
+        $(this.$el).find('.field-repeater-item').removeClass('hover')
+        $(event.currentTarget).closest('.field-repeater-item').addClass('hover')
+    }
+
+    Blocks.prototype.onItemMouseOut = function(event) {
+        event.stopPropagation()
+
+        if ($(event.currentTarget).closest('.field-repeater-item').find('.inspector-open').length) {
+            return
+        }
+
+        $(event.currentTarget).closest('.field-repeater-item').removeClass('hover')
+    }
+
+    Blocks.prototype.onItemFocus = function(event) {
+        event.stopPropagation()
+
+        $(event.currentTarget).closest('.field-repeater-item').addClass('focus')
+    }
+
+    Blocks.prototype.onItemBlur = function(event) {
+        event.stopPropagation()
+
+        $(event.currentTarget).closest('.field-repeater-item').removeClass('focus')
+    }
+
     // FIELD REPEATER PLUGIN DEFINITION
     // ============================
 
-    var old = $.fn.fieldRepeater
+    var old = $.fn.fieldBlocks
 
-    $.fn.fieldRepeater = function (option) {
+    $.fn.fieldBlocks = function (option) {
         var args = Array.prototype.slice.call(arguments, 1), result
         this.each(function () {
             var $this   = $(this)
-            var data    = $this.data('oc.repeater')
-            var options = $.extend({}, Repeater.DEFAULTS, $this.data(), typeof option == 'object' && option)
-            if (!data) $this.data('oc.repeater', (data = new Repeater(this, options)))
+            var data    = $this.data('wn.blocks')
+            var options = $.extend({}, Blocks.DEFAULTS, $this.data(), typeof option == 'object' && option)
+            if (!data) $this.data('wn.blocks', (data = new Blocks(this, options)))
             if (typeof option == 'string') result = data[option].apply(data, args)
             if (typeof result != 'undefined') return false
         })
@@ -306,13 +360,13 @@
         return result ? result : this
     }
 
-    $.fn.fieldRepeater.Constructor = Repeater
+    $.fn.fieldBlocks.Constructor = Blocks
 
     // FIELD REPEATER NO CONFLICT
     // =================
 
-    $.fn.fieldRepeater.noConflict = function () {
-        $.fn.fieldRepeater = old
+    $.fn.fieldBlocks.noConflict = function () {
+        $.fn.fieldBlocks = old
         return this
     }
 
@@ -320,7 +374,7 @@
     // ===============
 
     $(document).render(function() {
-        $('[data-control="fieldrepeater"]').fieldRepeater()
-    });
+        $('[data-control="fieldblocks"]').fieldBlocks()
+    })
 
 }(window.jQuery);

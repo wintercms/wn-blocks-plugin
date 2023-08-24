@@ -1,7 +1,7 @@
 name: winter.blocks::lang.blocks.button.name
 description: winter.blocks::lang.blocks.button.description
 icon: icon-caret-square-o-right
-context: ["pages"]
+tags: ["pages"]
 fields:
     config:
         label: winter.blocks::lang.blocks.button.name

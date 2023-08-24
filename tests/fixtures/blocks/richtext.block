@@ -1,0 +1,10 @@
+name: Rich text
+description: title block
+icon: icon-text
+tags: ["content"]
+fields:
+    content:
+        label: false
+        type: richeditor
+        size: small
+==

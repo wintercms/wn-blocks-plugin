@@ -1,13 +1,13 @@
 name: winter.blocks::lang.blocks.richtext.name
 description: winter.blocks::lang.blocks.richtext.description
 icon: icon-pencil-square-o
-context: ["pages"]
+tags: ["pages"]
 fields:
     content:
-        label: winter.blocks::lang.fields.content
+        placeholder: winter.blocks::lang.fields.content
         span: full
         type: richeditor
 ==
 <div class="prose lg:prose-xl">
-    {{ data.content | raw }}
+    {{ content | raw }}
 </div>
