@@ -38,7 +38,7 @@ This plugin also introduces the concepts of "actions"; a way to define and execu
 
 Blocks may have one or more tags, which is a way of defining and grouping blocks. For example, you may have a Gallery block which allows only "image" tagged blocks to be used, or a container block which allows all "content" tagged blocks but does not allow another "container" tagged block within.
 
-Tags are defined in the blocks, and can be controlled and limited through the Blocks form widget.
+Tags are defined in the blocks, and can be used to filter the available blocks in the Blocks form widget.
 
 
 ## Registering Blocks
@@ -135,9 +135,9 @@ config:
     {% set alignment = 'text-right' %}
 {% endif %}
 
-<{{ config.size|default('h2') }} class="{{ alignment }}">
+<{{ config.size | default('h2') }} class="{{ alignment }}">
     {{ content }}
-</{{ config.size|default('h2') }}>
+</{{ config.size | default('h2') }}>
 ```
 
 > **NOTE:** With `config` options, these must always be treated as "optional" due to limitations with the Inspector widget. The Inpsector widget only populates values in the block when they are changed. Always have a fallback in your Twig content.
@@ -146,10 +146,11 @@ config:
 
 In order to provide an interface for managing block-based content, this plugin provides the `blocks` FormWidget. This widget can be used in the backend as a form field to manage blocks.
 
-The `blocks` FormWidget supports two additional properties:
+The `blocks` FormWidget supports the following additional properties:
 
 - `allow`: An array of block types that are allowed to be added to the widget. If specified, only those block types listed will be available to add to the current instance of the field. You can define either a straight array of individual blocks to allow, or define an object with `tags` and/or `blocks` to allow whole tags or individual blocks.
 - `ignore`: A list of block types that are not allowed to be added to the widget. If not specified, all block types will be available to add to the current instance of the field. You can define either a straight array of individual blocks to ignore, or define an object with `tags` and/or `blocks` to ignore whole tags or individual blocks.
+- `tags`: A list of block tags that are allowed to be added to the widget. If specified, only block types that have at least one of the listed tags will be available to add to the current instance of the field.
 
 Those properties allow you to limit the block types that can be added to a specific instance of the widget, which can be very helpful when building "container" type blocks that need to avoid including themselves or only support a specific set of blocks as "children".
 
