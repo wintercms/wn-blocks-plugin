@@ -320,8 +320,8 @@ class Blocks extends Repeater
         foreach ($config as $property => $schema) {
             $defined = [
                 'property' => $property,
-                'title' => array_get($schema, 'title', array_get($schema, 'label')),
-                'description' => array_get($schema, 'description', array_get($schema, 'comment', array_get($schema, 'commentAbove'))),
+                'title' => Lang::get(array_get($schema, 'title', array_get($schema, 'label'))),
+                'description' => Lang::get(array_get($schema, 'description', array_get($schema, 'comment', array_get($schema, 'commentAbove')))),
                 'type' => $this->getBestInspectorField(array_get($schema, 'type', 'string')),
                 'group' => array_get($schema, 'group', array_get($schema, 'tab')),
             ];
@@ -336,6 +336,12 @@ class Blocks extends Repeater
                 'group',
                 'span',
             ]));
+
+            if (isset($defined['options']) && is_array($defined['options'])) {
+                foreach ($defined['options'] as $key => &$value) {
+                    $value = Lang::get($value);
+                }
+            }
 
             $properties[] = array_filter($defined);
         }
@@ -358,6 +364,7 @@ class Blocks extends Repeater
             case 'checkboxlist':
                 return 'set';
             case 'balloon-selector':
+            case 'radio':
                 return 'dropdown';
         }
 
