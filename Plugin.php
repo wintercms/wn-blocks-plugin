@@ -13,6 +13,10 @@ use Winter\Blocks\FormWidgets\Block;
 
 /**
  * Blocks Plugin Information File
+ *
+ * @TODO:
+ * - Review https://octobercms.com/plugin/reazzon-editor
+ *
  */
 class Plugin extends PluginBase
 {
