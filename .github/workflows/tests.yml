@@ -58,7 +58,7 @@ jobs:
           tools: composer:v2
           extensions: ${{ env.extensions }}
           coverage: xdebug
-          
+
       - name: Setup dependency cache
         id: composercache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
@@ -86,5 +86,5 @@ jobs:
         env:
             CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
-            XDEBUG_MODE=coverage php artisan winter:test -p Winter.Blocks --testdox --coverage-clover coverage.xml
+            XDEBUG_MODE=coverage php artisan winter:test -p Winter.Blocks -- --testdox --coverage-clover coverage.xml
             bash <(curl -s https://codecov.io/bash)
