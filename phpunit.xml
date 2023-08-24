@@ -13,13 +13,15 @@
             <directory>./tests</directory>
         </testsuite>
     </testsuites>
-    <coverage cacheDirectory=".phpunit.cache/code-coverage"
-              processUncoveredFiles="true">
+    <coverage>
         <include>
             <directory suffix=".php">classes</directory>
             <directory suffix=".php">formwidgets</directory>
             <file>Plugin.php</file>
         </include>
+        <exclude>
+            <directory suffix=".php">formwidgets/*/partials</directory>
+        </exclude>
     </coverage>
     <php>
         <env name="APP_ENV" value="testing"/>
