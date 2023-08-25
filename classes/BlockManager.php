@@ -11,6 +11,7 @@ use System\Classes\PluginManager;
 use Winter\Storm\Support\Traits\Singleton;
 use Winter\Storm\Support\Str;
 use Winter\Storm\Exception\SystemException;
+use Winter\Storm\Filesystem\PathResolver;
 
 /**
  * Manages the available Blocks that can be used in the application
@@ -70,7 +71,7 @@ class BlockManager
             return;
         }
 
-        $this->blocks[$key] = $realPath;
+        $this->blocks[$key] = PathResolver::standardize($realPath);
     }
 
     /**
