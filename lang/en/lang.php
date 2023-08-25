@@ -15,6 +15,9 @@ return [
             'target_blank' => 'New tab',
         ],
     ],
+    'tabs' => [
+        'display' => 'Display',
+    ],
     'blocks' => [
         'button' => [
             'name' => 'Button',
