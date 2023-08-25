@@ -4,29 +4,35 @@ icon: icon-caret-square-o-right
 tags: ["pages"]
 fields:
     config:
-        label: winter.blocks::lang.blocks.button.name
         type: nestedform
+        usePanelStyles: false
         form:
             fields:
                 label:
                     label: winter.blocks::lang.fields.label
                     span: full
                     type: text
-                color:
-                    label: winter.blocks::lang.fields.color
-                    span: auto
-                    type: colorpicker
-                icon:
-                    label: winter.blocks::lang.fields.icon
-                    span: auto
-                    type: iconpicker
-                _action_section:
-                    label: winter.blocks::lang.fields.actions
-                    type: section
-                actions:
-                    type: repeater
-                    prompt: winter.blocks::lang.fields.actions_prompt
-                    groups: $/winter/blocks/meta/actions.yaml
+            tabs:
+                icons:
+                    winter.blocks::lang.fields.actions: 'icon-arrow-pointer'
+                    winter.blocks::lang.tabs.display: 'icon-brush'
+
+                fields:
+                    actions:
+                        type: repeater
+                        tab: winter.blocks::lang.fields.actions
+                        prompt: winter.blocks::lang.fields.actions_prompt
+                        groups: $/winter/blocks/meta/actions.yaml
+                    color:
+                        label: winter.blocks::lang.fields.color
+                        tab: winter.blocks::lang.tabs.display
+                        span: auto
+                        type: colorpicker
+                    icon:
+                        label: winter.blocks::lang.fields.icon
+                        tab: winter.blocks::lang.tabs.display
+                        span: auto
+                        type: iconpicker
 ==
 <?php
 function onStart()
