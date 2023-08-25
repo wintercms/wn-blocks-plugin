@@ -75,7 +75,7 @@ class BlocksTest extends PluginTestCase
 
         // Only way we can see if the block is available through the public API is through getting the title of
         // the block. If the title is missing, the block isn't available.
-        $this->assertEquals('Rich Text', $widget->getGroupTitle('richtext'));
+        $this->assertEquals('Rich text', $widget->getGroupTitle('richtext'));
         $this->assertEquals('Title', $widget->getGroupTitle('title'));
         $this->assertNull($widget->getGroupTitle('container'));
     }
