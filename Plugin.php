@@ -9,6 +9,7 @@ use Event;
 use System\Classes\PluginBase;
 use Winter\Blocks\Classes\BlockManager;
 use Winter\Blocks\Classes\BlocksDatasource;
+use Winter\Blocks\Classes\Block as BlockModel;
 use Winter\Blocks\FormWidgets\Block;
 
 /**
@@ -72,8 +73,25 @@ class Plugin extends PluginBase
     {
         return [
             'functions' => [
-                'renderBlock' => [\Winter\Blocks\Classes\Block::class, 'render'],
-                'renderBlocks' => [\Winter\Blocks\Classes\Block::class, 'renderAll'],
+                'renderBlock' => [
+                    function (array $context, string|array $block, array $data = []) {
+                        return BlockModel::render(
+                            $block,
+                            $data,
+                            $context['this']['controller'] ?? null
+                        );
+                    },
+                    'options' => ['needs_context' => true]
+                ],
+                'renderBlocks' => [
+                    function (array $context, array $blocks) {
+                        return BlockModel::renderAll(
+                            $blocks,
+                            $context['this']['controller'] ?? null
+                        );
+                    },
+                    'options' => ['needs_context' => true]
+                ],
             ],
         ];
     }

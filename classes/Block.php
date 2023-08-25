@@ -37,8 +37,12 @@ class Block extends CmsCompoundObject
     /**
      * Renders the provided block
      */
-    public static function render(string|array $block, array $data = []): string
+    public static function render(string|array $block, array $data = [], ?Controller $controller): string
     {
+        if (!$controller) {
+            $controller = new Controller();
+        }
+
         if (is_array($block)) {
             $data = $block;
             $block = $data['_group'] ?? false;
@@ -67,16 +71,16 @@ class Block extends CmsCompoundObject
             $partialData['config'] = static::getDefaultConfig($block);
         }
 
-        return (new Controller())->renderPartial($block . '.block', $partialData);
+        return $controller->renderPartial($block . '.block', $partialData);
     }
 
     /**
      * Renders the provided blocks
      */
-    public static function renderAll(array $blocks): string
+    public static function renderAll(array $blocks, ?Controller $controller): string
     {
         $content = '';
-        $controller = (new Controller());
+        $controller ??= (new Controller());
 
         foreach ($blocks as $i => $block) {
             if (!array_key_exists('_group', $block)) {
