@@ -14,6 +14,11 @@ return [
             'target_self' => 'Same tab',
             'target_blank' => 'New tab',
         ],
+        'open_media' => [
+            'name' => 'Download Media File',
+            'description' => 'Download the provided file from the Media Library',
+            'media_file' => 'File',
+        ],
     ],
     'tabs' => [
         'display' => 'Display',

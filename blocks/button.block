@@ -35,6 +35,8 @@ fields:
                         type: iconpicker
 ==
 <?php
+use System\Classes\MediaLibrary;
+
 function onStart()
 {
     $this->controller->addJs(Url::asset('/plugins/winter/blocks/assets/dist/js/blocks.js'), 'Winter.Blocks');
@@ -48,6 +50,14 @@ function onStart()
         foreach ($data['actions'] as &$config) {
             $action = $config['_group'] ?? '';
             unset($config['_group']);
+
+            switch ($action) {
+                case 'open_media':
+                    $config['href'] = MediaLibrary::url($config['media_file']);
+                    $action = 'open_url';
+                    break;
+            }
+
             $config = [
                 'data' => $config,
                 'action' => $action,

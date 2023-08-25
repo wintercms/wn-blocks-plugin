@@ -15,3 +15,23 @@ open_url:
             options:
                 _self: winter.blocks::lang.actions.open_url.target_self
                 _blank: winter.blocks::lang.actions.open_url.target_blank
+open_media:
+    name: winter.blocks::lang.actions.open_media.name
+    description: winter.blocks::lang.actions.open_media.description
+    icon: icon-file
+    fields:
+        _title:
+            label: winter.blocks::lang.actions.open_media.name
+            type: section
+        media_file:
+            label: winter.blocks::lang.actions.open_media.media_file
+            type: mediafinder
+            span: left
+            mode: file
+        target:
+            label: winter.blocks::lang.actions.open_url.target
+            type: balloon-selector
+            span: right
+            options:
+                _self: winter.blocks::lang.actions.open_url.target_self
+                _blank: winter.blocks::lang.actions.open_url.target_blank
