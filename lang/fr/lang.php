@@ -14,6 +14,14 @@ return [
             'target_self' => 'Même onget',
             'target_blank' => 'Nouvel onglet',
         ],
+        'open_media' => [
+            'name' => 'Télécharger un fichier média',
+            'description' => 'Télécharger le fichier spécifié à partir de la médiathèque',
+            'media_file' => 'Fichier',
+        ],
+    ],
+    'tabs' => [
+        'display' => 'Apparence',
     ],
     'blocks' => [
         'button' => [
@@ -104,6 +112,7 @@ return [
         'icon' => 'Icône',
         'label' => 'Label/texte',
         'size' => 'Taille',
+        'default' => 'Défaut',
         'alignment_x' => [
             'label' => 'Alignement horizontal',
             'left' => 'A gauche',
