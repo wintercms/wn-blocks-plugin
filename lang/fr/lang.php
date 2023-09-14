@@ -80,10 +80,10 @@ return [
         ],
         'title' => [
             'name' => 'Titre',
-            'description' => 'Texte grand format avec options de taille',
+            'description' => 'Titre de page avec options de taille',
             'size' => [
                 'h4' => 'Petit',
-                'h3' => 'Moye,',
+                'h3' => 'Moyen',
                 'h2' => 'Grand',
             ],
         ],
