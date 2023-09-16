@@ -18,9 +18,9 @@ fields:
 ==
 <div class="grid grid-cols-1 md:grid-cols-2 md:mt-0 mt-5 gap-10 md:gap-4">
     <div>
-        {{ renderBlocks(left) }}
+        {{ renderBlocks(left | default([])) }}
     </div>
     <div>
-        {{ renderBlocks(right) }}
+        {{ renderBlocks(right | default([])) }}
     </div>
 </div>
