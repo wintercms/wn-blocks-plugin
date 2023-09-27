@@ -113,10 +113,17 @@ class Plugin extends PluginBase
         // Register the block manager instance
         BlockManager::instance();
         Event::listen('cms.theme.registerHalcyonDatasource', function (Theme $theme, $resolver) {
-            $resolver->addDatasource($theme->getDirName(), new AutoDatasource([
-                'theme' => $theme->getDatasource(),
-                'blocks' => new BlocksDatasource(),
-            ], 'blocks-autodatasource'));
+            $source = $theme->getDatasource();
+            if ($source instanceof AutoDatasource) {
+                /* @var AutoDatasource $source */
+                $source->appendDatasource('blocks', new BlocksDatasource());
+                return;
+            } else {
+                $resolver->addDatasource($theme->getDirName(), new AutoDatasource([
+                    'theme' => $source,
+                    'blocks' => new BlocksDatasource(),
+                ], 'blocks-autodatasource'));
+            }
         });
     }
 
