@@ -37,7 +37,7 @@ class Block extends CmsCompoundObject
     /**
      * Renders the provided block
      */
-    public static function render(string|array $block, array $data = [], ?Controller $controller): string
+    public static function render(string|array $block, array $data = [], ?Controller $controller = null): string
     {
         if (!$controller) {
             $controller = new Controller();
@@ -77,7 +77,7 @@ class Block extends CmsCompoundObject
     /**
      * Renders the provided blocks
      */
-    public static function renderAll(array $blocks, ?Controller $controller): string
+    public static function renderAll(array $blocks, ?Controller $controller = null): string
     {
         $content = '';
         $controller ??= (new Controller());
