@@ -344,7 +344,7 @@ class Blocks extends Repeater
                     }
                 } elseif (is_callable($defined['options'])) {
                     $callable = $defined['options'];
-                    $defined['options'] = $callable($this->formWidget, $this->formField);
+                    $defined['options'] = $callable($property);
                 }
             }
 
