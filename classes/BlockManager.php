@@ -128,4 +128,20 @@ class BlockManager
     {
         return !!$this->getConfig($type);
     }
+
+    /**
+     * Remove a block by key
+     */
+    public function removeBlock(string|array $key): void
+    {
+        if (is_array($key)) {
+            foreach ($key as $k) {
+                $this->removeBlock($k);
+            }
+
+            return;
+        }
+
+        unset($this->blocks[$key]);
+    }
 }
