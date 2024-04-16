@@ -11,7 +11,7 @@ return [
             'description' => 'Ouvrez l\'URL fournie',
             'href' => 'URL',
             'target' => 'Ouvrir l\'URL dans',
-            'target_self' => 'Même onget',
+            'target_self' => 'Même onglet',
             'target_blank' => 'Nouvel onglet',
         ],
         'open_media' => [
@@ -115,9 +115,9 @@ return [
         'default' => 'Défaut',
         'alignment_x' => [
             'label' => 'Alignement horizontal',
-            'left' => 'A gauche',
-            'center' => 'Au entre',
-            'right' => 'A droite',
+            'left' => 'À gauche',
+            'center' => 'Centré',
+            'right' => 'À droite',
         ],
     ],
 ];
