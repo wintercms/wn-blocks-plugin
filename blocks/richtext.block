@@ -6,7 +6,7 @@ fields:
     content:
         placeholder: winter.blocks::lang.fields.content
         span: full
-        type: richeditor
+        type: mlricheditor
 ==
 <div class="prose lg:prose-xl">
     {{ content | raw }}

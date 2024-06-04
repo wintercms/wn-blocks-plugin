@@ -11,7 +11,7 @@ fields:
                 label:
                     label: winter.blocks::lang.fields.label
                     span: full
-                    type: text
+                    type: mltext
             tabs:
                 icons:
                     winter.blocks::lang.fields.actions: 'icon-arrow-pointer'

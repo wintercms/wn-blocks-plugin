@@ -5,7 +5,7 @@ tags: ["pages"]
 fields:
     youtube_id:
         label: winter.blocks::lang.blocks.youtube.youtube_id
-        type: text
+        type: mltext
 ==
 {% if youtube_id %}
     <iframe

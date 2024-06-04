@@ -4,13 +4,13 @@ icon: icon-picture-o
 tags: ["pages"]
 fields:
     image:
-        type: mediafinder
+        type: mlmediafinder
         span: full
         mode: image
     alt_text:
         label: winter.blocks::lang.blocks.image.alt_text
         span: full
-        type: text
+        type: mltext
 config:
     size:
         label: winter.blocks::lang.fields.size

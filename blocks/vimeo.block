@@ -5,7 +5,7 @@ tags: ["pages"]
 fields:
     vimeo_id:
         label: winter.blocks::lang.blocks.vimeo.vimeo_id
-        type: text
+        type: mltext
 ==
 {% if vimeo_id %}
     <iframe
