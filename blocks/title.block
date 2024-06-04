@@ -6,7 +6,7 @@ fields:
     content:
         placeholder: winter.blocks::lang.blocks.title.name
         span: full
-        type: text
+        type: mltext
 config:
     size:
         label: winter.blocks::lang.fields.size

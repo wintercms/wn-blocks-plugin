@@ -2,15 +2,16 @@
 
 namespace Winter\Blocks\FormWidgets;
 
-use Backend\FormWidgets\Repeater;
 use Lang;
 use Winter\Blocks\Classes\BlockManager;
 use Winter\Storm\Exception\ApplicationException;
+use Winter\Translate\FormWidgets\MLRepeater;
+use Winter\Translate\Models\Locale;
 
 /**
  * "Blocks" FormWidget for defining and managing multiple blocks
  */
-class Blocks extends Repeater
+class Blocks extends MLRepeater
 {
     /**
      * List of blocks to ignore for this specific instance
@@ -369,5 +370,47 @@ class Blocks extends Repeater
         }
 
         return $type;
+    }
+
+    /**
+     * Returns an array of translated values for this field
+     * @return array
+     */
+    public function getLocaleSaveData()
+    {
+        $values = [];
+        $data = post('RLTranslate');
+
+        if (!is_array($data)) {
+            if ($this->translationMode === 'fields') {
+                foreach (Locale::listEnabled() as $code => $name) {
+                    // force translations removal from db
+                    $values[$code] = [];
+                }
+            }
+            return $values;
+        }
+
+        $fieldName = $this->getLongFieldName();
+        $isJson = $this->isLocaleFieldJsonable();
+
+        foreach ($data as $locale => $_data) {
+            $i = 0;
+            $content = array_get($_data, $fieldName);
+            if (is_array($content)) {
+                foreach ($content as $index => $value) {
+                    // we reindex to fix item reordering index issues
+                    // This will add the _group & _config data with the localized content
+                    $values[$locale][$i++] = array_replace_recursive(
+                        json_decode(json_encode($this->formWidgets[$i - 1]->data), true),
+                        $value
+                    );
+                }
+            } else {
+                $values[$locale] = $isJson && is_string($content) ? json_decode($content, true) : $content;
+            }
+        }
+
+        return $values;
     }
 }

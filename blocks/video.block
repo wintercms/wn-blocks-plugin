@@ -6,7 +6,7 @@ fields:
     video:
         label: winter.blocks::lang.blocks.video.name
         span: full
-        type: mediafinder
+        type: mlmediafinder
         mode: video
 ==
 {% if video %}
