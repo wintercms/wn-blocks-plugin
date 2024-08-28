@@ -15,7 +15,9 @@ class BlockParser extends SectionParser
      */
     public static function parseSettings(string $settings): array
     {
-        return Yaml::parse($settings);
+        $parsed = Yaml::parse($settings);
+        // Ensure that the parsed settings returns an array (errors return input string)
+        return is_array($parsed) ? $parsed : [];
     }
 
     /**
