@@ -74,6 +74,21 @@ class BlocksController extends CmsIndexController
     }
 
     /**
+     * Returns the text for a template tab
+     * @param string $type
+     * @param string $template
+     * @return string
+     */
+    protected function getTabTitle($type, $template)
+    {
+        if ($type !== 'block') {
+            throw new ApplicationException(Lang::get('cms::lang.template.invalid_type'));
+        }
+
+        return Lang::get('winter.blocks::lang.editor.new');
+    }
+
+    /**
      * Returns a form widget for a specified template type.
      * @param string $type
      * @param string $template
