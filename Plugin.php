@@ -2,15 +2,19 @@
 
 namespace Winter\Blocks;
 
+use Backend\Classes\NavigationManager;
 use Backend\Classes\WidgetManager;
+use Backend\Facades\Backend;
+use Backend\Models\UserRole;
 use Cms\Classes\AutoDatasource;
 use Cms\Classes\Theme;
-use Event;
 use System\Classes\PluginBase;
+use Winter\Blocks\Classes\Block as BlockModel;
 use Winter\Blocks\Classes\BlockManager;
 use Winter\Blocks\Classes\BlocksDatasource;
-use Winter\Blocks\Classes\Block as BlockModel;
 use Winter\Blocks\FormWidgets\Block;
+use Winter\Storm\Support\Facades\Config;
+use Winter\Storm\Support\Facades\Event;
 
 /**
  * Blocks Plugin Information File
@@ -103,6 +107,27 @@ class Plugin extends PluginBase
     {
         $this->extendThemeDatasource();
         $this->extendControlLibraryBlocks();
+
+        if ($this->app->runningInBackend() && in_array('Cms', Config::get('cms.loadModules'))) {
+            $this->extendCms();
+        }
+    }
+
+    /**
+     * Registers any back-end permissions used by this plugin.
+     *
+     * @return array
+     */
+    public function registerPermissions()
+    {
+        return [
+            'winter.blocks.manage_blocks' => [
+                'tab'   => 'winter.blocks::lang.plugin.name',
+                'order' => 200,
+                'roles' => [UserRole::CODE_DEVELOPER, UserRole::CODE_PUBLISHER],
+                'label' => 'winter.blocks::lang.blocks.manage_blocks'
+            ],
+        ];
     }
 
     /**
@@ -174,6 +199,23 @@ class Plugin extends PluginBase
             foreach (BlockManager::instance()->getConfigs() as $key => $config) {
                 $manager->registerFormWidget(Block::class, Block::TYPE_PREFIX . $key);
             }
+        });
+    }
+
+    /**
+     * Extend the CMS to implement the BlocksController as a child of the CMS
+     */
+    public function extendCms(): void
+    {
+        Event::listen('backend.menu.extendItems', function (NavigationManager $manager) {
+            $manager->addSideMenuItem('winter.cms', 'cms', 'blocks', [
+                'label'       => 'winter.blocks::lang.plugin.name',
+                'icon'        => 'icon-cubes',
+                'url'         => Backend::url('winter/blocks/blockscontroller'),
+                // TODO: Make good
+                'attributes'  => 'onclick="window.location.href = this.querySelector(\'a\').href;"',
+                'permissions' => ['winter.blocks.manage_blocks']
+            ]);
         });
     }
 }
