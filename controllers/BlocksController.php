@@ -85,7 +85,7 @@ class BlocksController extends CmsIndexController
             throw new ApplicationException(Lang::get('cms::lang.template.invalid_type'));
         }
 
-        return Lang::get('winter.blocks::lang.editor.new');
+        return $template->getFileName() ?? Lang::get('winter.blocks::lang.editor.new');
     }
 
     /**
