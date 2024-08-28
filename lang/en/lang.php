@@ -24,7 +24,8 @@ return [
         'display' => 'Display',
     ],
     'editor' => [
-        'settings' => 'Settings'
+        'settings' => 'Settings',
+        'new' => 'New Block',
     ],
     'blocks' => [
         'button' => [
