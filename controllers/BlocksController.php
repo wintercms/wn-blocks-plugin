@@ -2,15 +2,17 @@
 
 namespace Winter\Blocks\Controllers;
 
-use BackendMenu;
 use Backend\Classes\Controller;
+use Backend\Classes\NavigationManager;
+use Backend\Facades\Backend;
+use Backend\Facades\BackendMenu;
 use Cms\Classes\Theme;
+use Cms\Controllers\Index as CmsIndexController;
 use Cms\Widgets\TemplateList;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Request;
 use Winter\Blocks\Classes\Block;
 use Winter\Storm\Exception\ApplicationException;
-use Cms\Controllers\Index as CmsIndexController;
 use Winter\Storm\Support\Facades\Config;
 use Winter\Storm\Support\Facades\Flash;
 
@@ -47,6 +49,16 @@ class BlocksController extends CmsIndexController
         } catch (\Exception $ex) {
             $this->handleError($ex);
         }
+
+        // Dynamically re-write the cms menu item urls to allow the user to return back to those pages
+        BackendMenu::registerCallback(function (NavigationManager $navigationManager) {
+            foreach ($navigationManager->getMainMenuItem('Winter.Cms', 'cms')->sideMenu as $menuItem) {
+                if ($menuItem->url === 'javascript:;') {
+                    $menuItem->url = Backend::url('cms#' . $menuItem->code);
+                    $menuItem->attributes = 'onclick="window.location.href = this.querySelector(\'a\').href;"';
+                }
+            }
+        });
     }
 
     /**
