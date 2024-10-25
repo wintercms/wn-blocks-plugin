@@ -15,7 +15,14 @@ class BlocksDatasource extends Datasource
     public function __construct()
     {
         $this->processor = new BlockProcessor();
-        $this->blocks = BlockManager::instance()->getRegisteredBlocks();
+        $this->blocks = array_merge(
+            // Get blocks registered via plugins
+            BlockManager::instance()->getRegisteredBlocks(),
+            // Get blocks existing in the autodatasource
+            BlockManager::instance()->getBlocks()->map(function ($block) {
+                return ['name' => $block->name, 'path' => $block->getFilePath()];
+            })->pluck('path', 'name')->toArray()
+        );
     }
 
     /**
