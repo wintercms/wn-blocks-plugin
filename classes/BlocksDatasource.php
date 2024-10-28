@@ -20,7 +20,7 @@ class BlocksDatasource extends Datasource
             BlockManager::instance()->getRegisteredBlocks(),
             // Get blocks existing in the autodatasource
             BlockManager::instance()->getBlocks()->map(function ($block) {
-                return ['name' => $block->name, 'path' => $block->getFilePath()];
+                return ['name' => $block->id, 'path' => $block->getFilePath()];
             })->pluck('path', 'name')->toArray()
         );
     }
