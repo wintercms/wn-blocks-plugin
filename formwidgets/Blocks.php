@@ -402,7 +402,7 @@ class Blocks extends MLRepeater
                     // we reindex to fix item reordering index issues
                     // This will add the _group & _config data with the localized content
                     $values[$locale][$i++] = array_replace_recursive(
-                        json_decode(json_encode($this->formWidgets[$i - 1]->data), true),
+                        json_decode(json_encode($this->formWidgets[$index]->data), true),
                         $value
                     );
                 }
