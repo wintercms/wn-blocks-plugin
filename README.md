@@ -2,12 +2,11 @@
 
 ![Blocks Plugin](https://github.com/wintercms/wn-blocks-plugin/blob/main/.github/banner.png?raw=true)
 
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/wintercms/wn-blocks-plugin/blob/main/LICENSE)
+
 Provides a "block based" content management experience in Winter CMS
 
 >**NOTE:** This plugin is still in development and is likely to undergo changes. Do not use in production environments without using a version constraint in your composer.json file and carefully monitoring for breaking changes.
-
->**NOTE:** This plugin requires Winter CMS v1.2.2 or above.
-
 
 ## Installation
 
@@ -17,8 +16,13 @@ This plugin is available for installation via [Composer](http://getcomposer.org/
 composer require winter/wn-blocks-plugin
 ```
 
-In order to have the `actions` support function correctly, you need to load `/plugins/winter/blocks/assets/dist/js/blocks.js` after the Snowboard framework has been loaded.
+After installing the plugin you will need to run the migrations and (if you are using a [public folder](https://wintercms.com/docs/develop/docs/setup/configuration#using-a-public-folder)) [republish your public directory](https://wintercms.com/docs/develop/docs/console/setup-maintenance#mirror-public-files).
 
+```bash
+php artisan migrate
+```
+
+>**NOTE:** In order to have the `actions` support function correctly, you need to load `/plugins/winter/blocks/assets/dist/js/blocks.js` after the Snowboard framework has been loaded.
 
 ## Core Concepts
 
