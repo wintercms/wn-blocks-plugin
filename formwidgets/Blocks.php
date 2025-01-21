@@ -28,11 +28,6 @@ class Blocks extends Repeater
     public string|array|null $tags = null;
 
     /**
-     * List of inspector configs for the blocks.
-     */
-    public array $inspectorConfigs = [];
-
-    /**
      * Configuration stored with each index.
      */
     public array $indexConfigMeta = [];
@@ -212,10 +207,9 @@ class Blocks extends Repeater
                 'name' => array_get($config, 'name'),
                 'icon' => array_get($config, 'icon', 'icon-square-o'),
                 'description' => array_get($config, 'description'),
-                'fields' => array_get($config, 'fields')
+                'fields' => array_get($config, 'fields'),
+                'config' => array_get($config, 'config', null),
             ];
-
-            $this->inspectorConfigs[$code] = array_get($config, 'config', null);
         }
 
         // Sort the builder blocks by translated name label
@@ -299,7 +293,7 @@ class Blocks extends Repeater
      */
     public function hasInspectorConfig(string $groupCode): bool
     {
-        return isset($this->inspectorConfigs[$groupCode]);
+        return isset($this->groupDefinitions[$groupCode]['config']);
     }
 
     /**
@@ -307,7 +301,7 @@ class Blocks extends Repeater
      */
     public function getInspectorConfig(string $groupCode): string
     {
-        return json_encode($this->processInspectorConfig(array_get($this->inspectorConfigs, $groupCode, [])));
+        return json_encode($this->processInspectorConfig(array_get($this->groupDefinitions, $groupCode . '.config', [])));
     }
 
     /**
