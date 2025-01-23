@@ -43,6 +43,7 @@ $itemIcon = $this->getGroupIcon($groupCode);
 
         <input type="hidden" name="<?= $widget->arrayName ?>[_group]" value="<?= $groupCode ?>" />
     </div>
+
     <?php if ($this->hasInspectorConfig($groupCode)): ?>
         <a
             href="javascript:;"
