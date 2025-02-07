@@ -33,6 +33,8 @@ $itemIcon = $this->getGroupIcon($groupCode);
         </div>
     <?php endif ?>
 
+    <div class="repeater-item-collapsed-handle">&nbsp;</div>
+
     <div class="repeater-item-title<?php if (!$this->previewMode && $sortable): ?> repeater-item-handle <?= $this->getId('items') ?>-handle"<?php endif ?>>
         <span class="icon">
             <i class="<?= $itemIcon ?>"></i>
@@ -56,7 +58,7 @@ $itemIcon = $this->getGroupIcon($groupCode);
             <i class="icon-cog"></i>
             <input type="hidden" data-inspector-values name="<?= $widget->arrayName ?>[_config]" value="<?= e($groupConfig ?? '') ?>" />
         </a>
-        <?php endif ?>
+    <?php endif ?>
 
     <div class="field-repeater-form"
          data-control="formwidget"

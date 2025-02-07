@@ -61,6 +61,14 @@
         this.$el.on('focus', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemFocus))
         this.$el.on('blur', '> .field-repeater-items > .field-repeater-item', this.proxy(this.onItemBlur))
 
+        this.$el.find('> ul > li > .repeater-item-collapsed-handle')
+            .css({'cursor': 'pointer', 'width': '100%'})
+            .on('click', this.proxy(this.toggleCollapse))
+
+        this.$el.find('> ul > li > .field-repeater-form > .form-group > label')
+            .css({'cursor': 'pointer', 'width': '100%'})
+            .on('click', this.proxy(this.toggleCollapse))
+
         this.$el.one('dispose-control', this.proxy(this.dispose))
 
         this.togglePrompt()
@@ -184,7 +192,7 @@
 
         if (this.options.maxItems && this.options.maxItems > 0) {
             var repeatedItems = this.$el.find('> .field-repeater-items > .field-repeater-item').length,
-                $addItemBtn = this.$el.find('> .field-repeater-add-item')
+                $addItemBtn = this.$el.find('> .field-repeater-items > .field-repeater-add-item')
 
             $addItemBtn.toggle(repeatedItems < this.options.maxItems)
         }
