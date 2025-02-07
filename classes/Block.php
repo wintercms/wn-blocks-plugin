@@ -8,7 +8,8 @@ use Cms\Classes\CodeParser;
 use Cms\Classes\ComponentManager;
 use Cms\Classes\Controller;
 use Cms\Classes\PartialStack;
-use Lang;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Fluent;
 use Winter\Storm\Exception\SystemException;
 
 /**
@@ -101,10 +102,12 @@ class Block extends CmsCompoundObject
             $partialData['data'] = $partialData;
 
             if (!empty($block['_config'])) {
-                $partialData['config'] = json_decode($block['_config']);
+                $config = json_decode($block['_config']);
             } else {
-                $partialData['config'] = static::getDefaultConfig($block['_group']);
+                $config = static::getDefaultConfig($block['_group']);
             }
+
+            $partialData['config'] = new Fluent($config);
 
             $content .= $controller->renderPartial($block['_group'] . '.block', $partialData);
         }
