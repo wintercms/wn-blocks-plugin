@@ -9,7 +9,6 @@ use Cms\Classes\ComponentManager;
 use Cms\Classes\Controller;
 use Cms\Classes\PartialStack;
 use Illuminate\Support\Facades\Lang;
-use Illuminate\Support\Fluent;
 use Winter\Storm\Exception\SystemException;
 
 /**
@@ -107,7 +106,7 @@ class Block extends CmsCompoundObject
                 $config = static::getDefaultConfig($block['_group']);
             }
 
-            $partialData['config'] = new Fluent($config);
+            $partialData['config'] = json_decode(json_encode($config), true);
 
             $content .= $controller->renderPartial($block['_group'] . '.block', $partialData);
         }
