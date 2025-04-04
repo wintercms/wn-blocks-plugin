@@ -7,9 +7,10 @@ use Cms\Classes\CmsException;
 use Cms\Classes\CodeParser;
 use Cms\Classes\ComponentManager;
 use Cms\Classes\Controller;
+use Cms\Classes\Layout;
+use Cms\Classes\Page;
 use Cms\Classes\PartialStack;
 use Illuminate\Support\Facades\Lang;
-use Illuminate\Support\Fluent;
 use Winter\Storm\Exception\SystemException;
 
 /**
@@ -107,7 +108,7 @@ class Block extends CmsCompoundObject
                 $config = static::getDefaultConfig($block['_group']);
             }
 
-            $partialData['config'] = new Fluent($config);
+            $partialData['config'] = json_decode(json_encode($config), true);
 
             $content .= $controller->renderPartial($block['_group'] . '.block', $partialData);
         }
@@ -174,7 +175,11 @@ class Block extends CmsCompoundObject
 
         CmsException::mask($this->page, 300);
         $parser = new CodeParser($this);
-        $partialObj = $parser->source($controller->getPage(), $controller->getLayout(), $controller);
+        $partialObj = $parser->source(
+            $controller->getPage() ?: new Page(),
+            $controller->getLayout() ?: new Layout(),
+            $controller
+        );
         CmsException::unmask();
 
         CmsException::mask($this, 300);

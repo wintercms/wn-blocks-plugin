@@ -72,7 +72,7 @@ class Blocks extends Repeater
     protected function processSaveValue($value)
     {
         if (!is_array($value) || !$value) {
-            return $value;
+            return null;
         }
 
         $count = count($value);

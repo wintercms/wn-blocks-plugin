@@ -12,6 +12,10 @@
     data-sortable-handle=".<?= $this->getId('items') ?>-handle"
     <?php endif; ?>
 >
+    <?php if (!$this->previewMode): ?>
+        <input type="hidden" name="<?= $this->getFieldName(); ?>">
+    <?php endif ?>
+
     <ul id="<?= $this->getId('items') ?>" class="field-repeater-items">
         <?php foreach ($formWidgets as $index => $widget) : ?>
             <?= $this->makePartial('block_item', [
