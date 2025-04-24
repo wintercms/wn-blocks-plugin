@@ -14,7 +14,7 @@ jobs:
       max-parallel: 4
       matrix:
         operatingSystem: [ubuntu-latest, windows-latest]
-        phpVersion: ['8.0', '8.1', '8.2']
+        phpVersion: ['8.1', '8.2', '8.3', '8.4']
       fail-fast: false
     env:
       extensions: curl, fileinfo, gd, mbstring, openssl, pdo, pdo_sqlite, sqlite3, xml, zip
