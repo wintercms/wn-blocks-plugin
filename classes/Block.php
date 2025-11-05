@@ -198,7 +198,7 @@ class Block extends CmsCompoundObject
     {
         $config = BlockManager::instance()->getConfig($block);
 
-        if (!array_key_exists('config', $config)) {
+        if (!is_array($config) || !array_key_exists('config', $config)) {
             return null;
         }
 
