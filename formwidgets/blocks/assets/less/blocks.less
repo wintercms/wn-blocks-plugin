@@ -5,18 +5,18 @@
 .field-blocks {
     padding-top: 5px;
 
-    .field-repeater-items {
+    .field-block-items {
         counter-reset: repeater-index-counter;
     }
 
-    ul.field-repeater-items,
-    li.field-repeater-item {
+    ul.field-block-items,
+    li.field-block-item {
         padding: 0;
         margin: 0;
         list-style: none;
     }
 
-    ul.field-repeater-items > li {
+    ul.field-block-items > li {
         &.dragged {
             opacity: .7;
             position: absolute;
@@ -52,7 +52,7 @@
         }
     }
 
-    li.field-repeater-item {
+    li.field-block-item {
         position: relative;
         margin: 0 0 1em !important;
         padding: 3.5em 1.25em 0 1.25em !important;
@@ -69,13 +69,13 @@
                 display:none;
             }
 
-            .repeater-item-collapse {
+            > .repeater-item-collapse {
                 .repeater-item-collapse-one {
                     .transform(rotate(180deg));
                 }
             }
 
-            .repeater-item-title {
+            > .repeater-item-title {
                 display: inline-block;
                 border-bottom: none;
                 border-bottom-right-radius: 0;
@@ -89,7 +89,7 @@
             }
         }
 
-        .repeater-item-collapse {
+        > .repeater-item-collapse {
             position: absolute;
             top: 5px;
             right: 30px;
@@ -112,7 +112,7 @@
             }
         }
 
-        .repeater-item-remove {
+        > .repeater-item-remove {
             position: absolute;
             top: 4px;
             right: 5px;
@@ -134,7 +134,7 @@
             }
         }
 
-        .block-config {
+        > .block-config {
             position: absolute;
             top: 4px;
             right: 60px;
@@ -155,8 +155,8 @@
             }
         }
 
-        .repeater-item-collapse,
-        .repeater-item-remove {
+        > .repeater-item-collapse,
+        > .repeater-item-remove {
             width: 20px;
             height: 20px;
             text-align: center;
@@ -167,13 +167,13 @@
             }
         }
 
-        .repeater-item-collapsed-handle {
+        > .repeater-item-collapsed-handle {
             position: absolute;
             top: 0;
             inset-inline: 0;
         }
 
-        .repeater-item-title {
+        > .repeater-item-title {
             position: absolute;
             font-size: 13px;
             top: 0px;
@@ -191,7 +191,7 @@
             }
         }
 
-        .repeater-item-handle {
+        > .repeater-item-handle {
             cursor: move;
         }
 
@@ -279,14 +279,54 @@
         }
     }
 
+    //
+    // Nested Content Fixes
+    // Ensures blocks and nested repeaters display correctly when nested inside other blocks
+    //
+
+    // Remove repeater decorations from all block items
+    li.field-block-item {
+        &:before,  // Hide circle dot
+        &:after {  // Hide index counter
+            display: none !important;
+        }
+    }
+
+    // Standard repeater items nested in blocks: reset block-specific styling
+    li.field-block-item .field-repeater-item:not(.field-block-item) > .repeater-item-title {
+        width: auto !important;
+        height: auto !important;
+        border-top-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        border-bottom: none !important;
+        border-right: none !important;
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        background: transparent !important;
+        color: inherit !important;
+        padding: 0 !important;
+    }
+
+    // Nested blocks: override .repeater-item-handle constraints
+    li.field-block-item li.field-block-item > .repeater-item-title.repeater-item-handle {
+        width: auto !important;
+        height: auto !important;
+        border-radius: 0 !important;
+        border-top-left-radius: @border-radius-base !important;
+        border-bottom-right-radius: @border-radius-base !important;
+        text-align: start !important;
+        opacity: 1 !important;
+    }
+
     &[data-mode="grid"] {
         container-type: inline-size;
 
-        ul.field-repeater-items {
+        ul.field-block-items {
             display: grid;
             gap: 20px;
 
-            .field-repeater-item {
+            .field-block-item {
                 margin-bottom: 0 !important;
             }
 
@@ -310,27 +350,27 @@
             }
         }
 
-        &[data-columns="2"] ul.field-repeater-items {
+        &[data-columns="2"] ul.field-block-items {
             grid-template-columns: repeat(2, 1fr);
         }
-        &[data-columns="3"] ul.field-repeater-items {
+        &[data-columns="3"] ul.field-block-items {
             grid-template-columns: repeat(3, 1fr);
         }
-        &[data-columns="4"] ul.field-repeater-items {
+        &[data-columns="4"] ul.field-block-items {
             grid-template-columns: repeat(4, 1fr);
 
             @media (max-width: 1600px) {
                 grid-template-columns: repeat(3, 1fr);
             }
         }
-        &[data-columns="5"] ul.field-repeater-items {
+        &[data-columns="5"] ul.field-block-items {
             grid-template-columns: repeat(5, 1fr);
 
             @media (max-width: 1600px) {
                 grid-template-columns: repeat(4, 1fr);
             }
         }
-        &[data-columns="6"] ul.field-repeater-items {
+        &[data-columns="6"] ul.field-block-items {
             grid-template-columns: repeat(6, 1fr);
 
             @media (max-width: 1600px) {
@@ -339,19 +379,19 @@
         }
 
         @media (min-width: @screen-sm-min) and (max-width: @screen-md-max) {
-            &[data-columns="3"] ul.field-repeater-items,
-            &[data-columns="4"] ul.field-repeater-items,
-            &[data-columns="5"] ul.field-repeater-items,
-            &[data-columns="6"] ul.field-repeater-items {
+            &[data-columns="3"] ul.field-block-items,
+            &[data-columns="4"] ul.field-block-items,
+            &[data-columns="5"] ul.field-block-items,
+            &[data-columns="6"] ul.field-block-items {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
 
         @media (max-width: @screen-xs-max) {
-            ul.field-repeater-items {
+            ul.field-block-items {
                 grid-template-columns: 1fr !important;
 
-                .field-repeater-item,
+                .field-block-item,
                 .field-repeater-add-item {
                     min-height: 0 !important;
                 }
@@ -369,28 +409,147 @@
 }
 
 @container (width < 800px) {
-    &[data-columns="2"] ul.field-repeater-items,
-    &[data-columns="3"] ul.field-repeater-items,
-    &[data-columns="4"] ul.field-repeater-items,
-    &[data-columns="5"] ul.field-repeater-items,
-    &[data-columns="6"] ul.field-repeater-items {
+    &[data-columns="2"] ul.field-block-items,
+    &[data-columns="3"] ul.field-block-items,
+    &[data-columns="4"] ul.field-block-items,
+    &[data-columns="5"] ul.field-block-items,
+    &[data-columns="6"] ul.field-block-items {
         grid-template-columns: 1fr !important;
     }
 }
 
 @container (width > 800px) and (width < 1200px) {
-    &[data-columns="3"] ul.field-repeater-items,
-    &[data-columns="4"] ul.field-repeater-items,
-    &[data-columns="5"] ul.field-repeater-items,
-    &[data-columns="6"] ul.field-repeater-items {
+    &[data-columns="3"] ul.field-block-items,
+    &[data-columns="4"] ul.field-block-items,
+    &[data-columns="5"] ul.field-block-items,
+    &[data-columns="6"] ul.field-block-items {
         grid-template-columns: repeat(2, 1fr) !important;
     }
 }
 
 @container (width >= 1200px) and (width < 1600px) {
-    &[data-columns="4"] ul.field-repeater-items,
-    &[data-columns="5"] ul.field-repeater-items,
-    &[data-columns="6"] ul.field-repeater-items {
+    &[data-columns="4"] ul.field-block-items,
+    &[data-columns="5"] ul.field-block-items,
+    &[data-columns="6"] ul.field-block-items {
         grid-template-columns: repeat(3, 1fr) !important;
+    }
+}
+
+//
+// Grouped Blocks Palette (Search & Grid)
+//
+
+.blocks-group-search-container {
+    padding: 10px 15px;
+    border-bottom: 1px solid #e0e0e0;
+
+    > div {
+        position: relative;
+    }
+
+    .icon-search {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #999;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .blocks-group-search {
+        padding-left: 32px;
+        padding-right: 32px;
+        width: 100%;
+    }
+
+    .blocks-group-search-clear {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        padding: 4px 6px;
+        cursor: pointer;
+        display: none;
+        z-index: 10;
+        color: #999;
+
+        i {
+            font-size: 14px;
+        }
+
+        &:hover {
+            color: #666;
+        }
+    }
+}
+
+.blocks-group-no-results {
+    display: none;
+    padding: 20px;
+    text-align: center;
+    color: #999;
+}
+
+.blocks-group-items-container {
+    min-width: 500px;
+    max-width: 800px;
+}
+
+.blocks-group-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px;
+    padding: 15px;
+
+    .blocks-group-item {
+        a {
+            display: flex;
+            height: 100%;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 12px 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: @border-radius-base;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+
+            i {
+                width: 1em;
+                text-align: center;
+                font-size: 24px;
+                color: #666;
+                margin-top: 2px;
+                flex-shrink: 0;
+            }
+
+            > div {
+                flex: 1;
+                min-width: 0;
+
+                .title {
+                    font-weight: 600;
+                    font-size: 13px;
+                    display: block;
+                    margin-bottom: 2px;
+                }
+
+                .description {
+                    font-size: 11px;
+                    color: #999;
+                    display: block;
+                    line-height: 1.3;
+                }
+            }
+
+            &:hover {
+                border-color: @link-color;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                transform: translateY(-2px);
+            }
+        }
     }
 }

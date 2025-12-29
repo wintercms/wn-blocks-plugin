@@ -16,7 +16,7 @@
         <input type="hidden" name="<?= $this->getFieldName(); ?>">
     <?php endif ?>
 
-    <ul id="<?= $this->getId('items') ?>" class="field-repeater-items">
+    <ul id="<?= $this->getId('items') ?>" class="field-repeater-items field-block-items">
         <?php foreach ($formWidgets as $index => $widget) : ?>
             <?= $this->makePartial('block_item', [
                 'widget' => $widget,
@@ -42,27 +42,45 @@
                 data-dismiss="popover"
                 aria-hidden="true">&times;</button>
         </div>
-        <div class="popover-fixed-height w-300">
+        <div class="blocks-group-search-container">
+            <div>
+                <label for="blocks-group-search-<?= $this->getId() ?>" class="sr-only">Search items</label>
+                <i class="icon-search"></i>
+                <input type="text"
+                    id="blocks-group-search-<?= $this->getId() ?>"
+                    class="form-control blocks-group-search"
+                    placeholder="Search items..."
+                    autocomplete="off">
+                <button type="button" class="blocks-group-search-clear">
+                    <i class="icon-close"></i>
+                </button>
+            </div>
+        </div>
+        <div class="blocks-group-no-results">
+            No items found
+        </div>
+        <div class="popover-fixed-height blocks-group-items-container">
             <div class="control-scrollpad" data-control="scrollpad">
                 <div class="scroll-wrapper">
-                    <div class="control-filelist filelist-hero" data-control="filelist">
-                        <ul>
-                            <?php foreach ($groupDefinitions as $item) : ?>
-                                <li>
-                                    <a
-                                        href="javascript:;"
-                                        data-repeater-add
-                                        data-request="<?= $this->getEventHandler('onAddItem') ?>"
-                                        data-request-data="_repeater_group: '<?= $item['code'] ?>'">
-                                        <i class="list-icon <?= $item['icon'] ?>"></i>
+
+                    <div class="control-filelist filelist-hero blocks-group-grid" data-control="filelist">
+                        <?php foreach ($groupDefinitions as $item) : ?>
+                            <div class="blocks-group-item">
+                                <a
+                                    href="javascript:;"
+                                    data-repeater-add
+                                    data-request="<?= $this->getEventHandler('onAddItem') ?>"
+                                    data-request-data="_repeater_group: '<?= $item['code'] ?>'">
+                                    <i class="<?= $item['icon'] ?>"></i>
+                                    <div>
                                         <span class="title"><?= e(trans($item['name'])) ?></span>
                                         <span class="description"><?= e(trans($item['description'])) ?></span>
-                                        <span class="borders"></span>
-                                    </a>
-                                </li>
-                            <?php endforeach ?>
-                        </ul>
+                                    </div>
+                                </a>
+                            </div>
+                        <?php endforeach ?>
                     </div>
+
                 </div>
             </div>
         </div>

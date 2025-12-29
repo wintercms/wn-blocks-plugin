@@ -101,8 +101,19 @@ class Plugin extends PluginBase
      */
     public function boot(): void
     {
+        $this->registerAssets();
         $this->extendThemeDatasource();
         $this->extendControlLibraryBlocks();
+    }
+
+    /**
+     * Register asset bundles for compilation
+     */
+    protected function registerAssets(): void
+    {
+        \System\Classes\CombineAssets::registerCallback(function ($combiner) {
+            $combiner->registerBundle('$/winter/blocks/formwidgets/blocks/assets/less/blocks.less');
+        });
     }
 
     /**

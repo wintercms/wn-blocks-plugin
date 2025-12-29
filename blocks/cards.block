@@ -7,6 +7,7 @@ fields:
         label: winter.blocks::lang.blocks.cards.name
         span: full
         type: repeater
+        mode: grid
         form:
             fields:
                 blocks:
