@@ -23,6 +23,10 @@ return [
     'tabs' => [
         'display' => 'Display',
     ],
+    'editor' => [
+        'settings' => 'Settings',
+        'new' => 'New Block',
+    ],
     'blocks' => [
         'button' => [
             'name' => 'Button',
@@ -101,6 +105,7 @@ return [
             'description' => 'Embed a YouTube video',
             'youtube_id' => 'YouTube Video ID',
         ],
+        'manage_blocks' => 'Manage Blocks',
     ],
     'fields' => [
         'actions_prompt' => 'Add action',
@@ -118,6 +123,12 @@ return [
             'left' => 'Left',
             'center' => 'Center',
             'right' => 'Right',
+        ],
+    ],
+    'models' => [
+        'blockscontroller' => [
+            'label' => 'Blocks Controller',
+            'label_plural' => 'Blocks Controllers',
         ],
     ],
 ];

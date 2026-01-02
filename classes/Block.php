@@ -28,6 +28,16 @@ class Block extends CmsCompoundObject
      */
     protected $allowedExtensions = ['block'];
 
+    /**
+     * @var array The attributes that are mass assignable.
+     */
+    protected $fillable = [
+        'markup',
+        'settings',
+        'code',
+        'yaml'
+    ];
+
     protected PartialStack $partialStack;
 
     public function __construct(array $attributes = [])
