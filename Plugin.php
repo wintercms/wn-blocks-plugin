@@ -102,8 +102,28 @@ class Plugin extends PluginBase
     public function boot(): void
     {
         $this->registerAssets();
-        $this->extendThemeDatasource();
         $this->extendControlLibraryBlocks();
+    }
+    
+    /**
+     * Register method, called when the plugin is first registered.
+     */
+    public function register(): void
+    {
+        Event::listen('cms.theme.registerHalcyonDatasource', function (Theme $theme, $resolver) {
+            BlockManager::instance(); // moved here
+    
+            $source = $theme->getDatasource();
+            if ($source instanceof AutoDatasource) {
+                $source->appendDatasource('blocks', new BlocksDatasource());
+                return;
+            }
+    
+            $resolver->addDatasource($theme->getDirName(), new AutoDatasource([
+                'theme' => $source,
+                'blocks' => new BlocksDatasource(),
+            ], 'blocks-autodatasource'));
+        });
     }
 
     /**
@@ -113,28 +133,6 @@ class Plugin extends PluginBase
     {
         \System\Classes\CombineAssets::registerCallback(function ($combiner) {
             $combiner->registerBundle('$/winter/blocks/formwidgets/blocks/assets/less/blocks.less');
-        });
-    }
-
-    /**
-     * Extend the theme's datasource to include the BlocksDatasource for loading blocks from
-     */
-    protected function extendThemeDatasource(): void
-    {
-        // Register the block manager instance
-        BlockManager::instance();
-        Event::listen('cms.theme.registerHalcyonDatasource', function (Theme $theme, $resolver) {
-            $source = $theme->getDatasource();
-            if ($source instanceof AutoDatasource) {
-                /* @var AutoDatasource $source */
-                $source->appendDatasource('blocks', new BlocksDatasource());
-                return;
-            } else {
-                $resolver->addDatasource($theme->getDirName(), new AutoDatasource([
-                    'theme' => $source,
-                    'blocks' => new BlocksDatasource(),
-                ], 'blocks-autodatasource'));
-            }
         });
     }
 
