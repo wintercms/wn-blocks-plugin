@@ -12,9 +12,4 @@
             <?= e(trans($prompt)) ?>
         </a>
     </li>
-    <li class="field-block-paste-row" data-block-paste-append-row style="display:none">
-        <a href="javascript:;" data-block-paste-append>
-            <i class="icon-paste"></i> Paste block
-        </a>
-    </li>
 <?php endif ?>

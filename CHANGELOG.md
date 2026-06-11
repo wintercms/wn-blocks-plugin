@@ -35,8 +35,9 @@
 - **Cut / Paste / Duplicate blocks** — each block has one horizontal toolbar
   (collapse, cut, paste, duplicate, config, delete). Cut/duplicate place the
   block's field values on the clipboard (`sessionStorage`); paste inserts after
-  a block, or appends via an affordance under the Add button (for empty
-  widgets). Duplicate also clones in place. Paste affordances appear only where
+  a block, or appends via a "Paste block" entry at the top of the *+ Add New
+  Item* palette (for empty widgets). Duplicate also clones in place. Paste
+  affordances appear only where
   the copied block type is offered (respects `allow`/`ignore`/`tags`) and
   survive navigation within the same browser tab.
 

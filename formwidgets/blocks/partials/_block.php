@@ -123,23 +123,22 @@
         (function injectToolbarCss() {
             if (document.getElementById('wn-blocks-toolbar-css')) { return; }
             var css =
-                '.field-block-item>.repeater-item-remove.block-item-toolbar{width:auto;' +
-                'height:auto;display:inline-flex;align-items:center;gap:1px;top:4px;right:5px}' +
-                '.block-item-action{float:none;display:inline-flex;align-items:center;' +
-                'justify-content:center;width:22px;height:22px;padding:0;margin:0;border:0;' +
-                'background:none;cursor:pointer;color:#333;opacity:.6;font-size:13px;' +
-                'line-height:1;border-radius:3px;transition:background .15s,color .15s,opacity .15s}' +
+                '.field-block-item>.repeater-item-remove.block-item-toolbar{width:auto!important;' +
+                'height:auto!important;display:inline-flex!important;align-items:center;' +
+                'gap:1px;top:4px;right:5px;white-space:nowrap}' +
+                '.block-item-action{float:none;flex:0 0 auto;display:inline-flex;' +
+                'align-items:center;justify-content:center;width:22px;height:22px;padding:0;' +
+                'margin:0;border:0;background:none;cursor:pointer;color:#333;opacity:.6;' +
+                'font-size:13px;line-height:1;border-radius:3px;' +
+                'transition:background .15s,color .15s,opacity .15s}' +
                 '.block-item-action>i{line-height:1}' +
                 '.block-item-action:hover,.block-item-action:focus{opacity:1;' +
                 'background:rgba(0,0,0,.06);color:#333;text-decoration:none}' +
                 '.block-item-action-remove:hover{color:#cc3300}' +
                 '.field-block-item.collapsed>.repeater-item-remove .repeater-item-collapse-one' +
                 '{transform:rotate(180deg)}' +
-                '.field-block-paste-row{list-style:none;text-align:center;padding:4px 0}' +
-                '.field-block-paste-row a{display:inline-flex;align-items:center;' +
-                'justify-content:center;gap:4px;font-size:13px;color:#333;opacity:.7;' +
-                'text-decoration:none}' +
-                '.field-block-paste-row a:hover{opacity:1;text-decoration:none}';
+                '.blocks-group-item.blocks-paste-item a .title{color:#0072bc}' +
+                '.blocks-group-item.blocks-paste-item i{color:#0072bc}';
             var style = document.createElement('style');
             style.id = 'wn-blocks-toolbar-css';
             style.textContent = css;
@@ -212,24 +211,14 @@
         }
 
         // Show/hide paste affordances based on clipboard state and widget availability.
-        // Per-item paste buttons toggle themselves; the append link toggles its own
-        // <li> row (so it sits on its own line under the Add button, never clipped).
-        function setPasteVisible(el, visible) {
-            if (el) { el.style.display = visible ? '' : 'none'; }
-        }
+        // Per-item paste buttons show only when the clipboard holds a block this
+        // widget accepts. (The append case is handled in the Add-Item palette.)
         function updatePasteButtons() {
             var cb = getClipboard();
             var ok = cb && cb.group;
-
             document.querySelectorAll('[data-block-paste]').forEach(function (btn) {
                 var fieldBlocks = btn.closest('.field-blocks');
-                setPasteVisible(btn, ok && blockTypeAvailable(fieldBlocks, cb.group));
-            });
-
-            document.querySelectorAll('[data-block-paste-append]').forEach(function (link) {
-                var fieldBlocks = link.closest('.field-blocks');
-                var row = link.closest('[data-block-paste-append-row]') || link;
-                setPasteVisible(row, ok && blockTypeAvailable(fieldBlocks, cb.group));
+                btn.style.display = (ok && blockTypeAvailable(fieldBlocks, cb.group)) ? '' : 'none';
             });
         }
 
@@ -286,18 +275,47 @@
             if (removeBtn) { removeBtn.click(); }
         });
 
-        // Paste-append button in the add-item row — appends the copied block at the end.
+        // Remember which widget's Add-Item palette is open, so a paste entry
+        // injected into the (body-level) popover knows where to insert.
         document.addEventListener('click', function (e) {
-            var btn = e.target.closest('[data-block-paste-append]');
-            if (!btn) { return; }
+            var add = e.target.closest('[data-repeater-add-group]');
+            if (add) { window.__activeBlocksWidget = add.closest('.field-blocks'); }
+        });
+
+        // Inject a "Paste block" entry at the top of an Add-Item palette grid when
+        // the clipboard holds a block this widget accepts. The popover is rendered
+        // at body level, so compatibility is checked against the active widget.
+        function injectPalettePaste(grid) {
+            var old = grid.querySelector('.blocks-paste-item');
+            if (old) { old.remove(); }
+
+            var cb = getClipboard();
+            var fieldBlocks = window.__activeBlocksWidget;
+            if (!cb || !cb.group || !blockTypeAvailable(fieldBlocks, cb.group)) { return; }
+
+            var item = document.createElement('div');
+            item.className = 'blocks-group-item blocks-paste-item';
+            item.innerHTML =
+                '<a href="javascript:;" data-block-paste-palette>' +
+                '<i class="icon-paste"></i>' +
+                '<div><span class="title">Paste block</span>' +
+                '<span class="description">Insert the copied block</span></div></a>';
+            grid.insertBefore(item, grid.firstChild);
+        }
+
+        // Click on the injected palette paste entry — append into the active widget.
+        document.addEventListener('click', function (e) {
+            var a = e.target.closest('[data-block-paste-palette]');
+            if (!a) { return; }
             e.preventDefault();
             e.stopPropagation();
             var cb = getClipboard();
-            if (!cb || !cb.group) { return; }
-            var fieldBlocks = btn.closest('.field-blocks');
+            var fieldBlocks = window.__activeBlocksWidget;
+            if (!cb || !cb.group || !fieldBlocks) { return; }
             var handler = findAddHandler(fieldBlocks);
             if (!handler) { return; }
-            // No afterLi — the MutationObserver will fill the block where onAddItem appends it.
+            // No afterLi — the MutationObserver fills the block where onAddItem appends it.
+            // The popover closes itself (its own delegated 'click a' handler).
             window.__pendingPaste = { fields: cb.fields, afterLi: null };
             if (typeof $ !== 'undefined') {
                 $(fieldBlocks).request(handler, { data: { _repeater_group: cb.group } });
@@ -416,8 +434,19 @@
                 });
         }
 
+        // Add the "Paste block" entry to any open Add-Item palette grid. Runs after
+        // applyRecent so it ends up first. Idempotent (removes any prior entry).
+        function applyPalettePaste() {
+            document.querySelectorAll('.blocks-group-grid').forEach(injectPalettePaste);
+        }
+
         // --- shared init + observer ----------------------------------------
-        function runAll() { initSections(); applyRecent(); updatePasteButtons(); }
+        function runAll() {
+            initSections();
+            applyRecent();
+            applyPalettePaste();
+            updatePasteButtons();
+        }
 
         runAll();
 

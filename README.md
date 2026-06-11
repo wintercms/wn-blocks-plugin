@@ -300,10 +300,10 @@ Every block has a single horizontal toolbar (top-right) with, in order:
 inspector)* and **delete**.
 
 - **Cut** — places the block's field values on the clipboard, then removes it (with the usual confirmation prompt).
-- **Paste** — appears once the clipboard holds a block. On each block it inserts the copied block immediately **after** that block; a **Paste block** affordance also appears beneath the "Add Block" button to append into an empty widget.
+- **Paste** — once the clipboard holds a block, a per-block paste icon inserts the copied block immediately **after** that block. A **Paste block** entry also appears at the top of the "Add Block" palette (the popover opened by *+ Add New Item*), which appends the copied block — handy for empty widgets.
 - **Duplicate** — clones the block in place (inserts a filled copy right after it) and also places it on the clipboard, so you can immediately paste the same block into another widget.
 
-Paste/duplicate respect the widget's `allow` / `ignore` / `tags` constraints: the paste affordance only appears where the copied block type is actually offered. The clipboard persists for the duration of the browser session (`sessionStorage`), so you can paste across different pages in the same tab.
+Paste/duplicate respect the widget's `allow` / `ignore` / `tags` constraints: the paste affordances only appear where the copied block type is actually offered. The clipboard persists for the duration of the browser session (`sessionStorage`), so you can paste across different pages in the same tab.
 
 > **Note on nested blocks:** Field values — including nested `blocks` fields, which store their content as JSON — are captured and restored correctly. Complex editor widgets (e.g. rich-text, code editors) may require an extra click to refresh their UI after paste, as those widgets listen for native `change` events.
 

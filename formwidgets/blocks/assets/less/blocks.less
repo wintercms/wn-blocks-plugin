@@ -11,17 +11,19 @@
     // Mirrored as an inline-injected <style> in the block widget partial so the
     // toolbar still renders correctly when the compiled CSS is stale.
     .field-block-item > .repeater-item-remove.block-item-toolbar {
-        width: auto;
-        height: auto;
-        display: inline-flex;
+        width: auto !important;
+        height: auto !important;
+        display: inline-flex !important;
         align-items: center;
         gap: 1px;
         top: 4px;
         right: 5px;
+        white-space: nowrap;
     }
 
     .block-item-action {
         float: none;
+        flex: 0 0 auto;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -65,31 +67,12 @@
         .transform(rotate(180deg));
     }
 
-    // "Paste block" affordance under the Add button when the clipboard holds a
-    // compatible block. Its own list row so it is never clipped by the add item.
-    // Rendered as a neutral (primary) icon button, not a blue text link.
-    .field-block-paste-row {
-        list-style: none;
-        text-align: center;
-        padding: 4px 0;
-
-        a {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            font-size: 13px;
-            color: @text-color;
-            opacity: .7;
-            text-decoration: none;
-
-            &:hover,
-            &:focus {
-                opacity: 1;
-                color: @text-color;
-                text-decoration: none;
-            }
-        }
+    // "Paste block" entry injected at the top of the Add-Item palette popover
+    // when the clipboard holds a block this widget accepts. Highlighted so it
+    // stands out from the regular block list.
+    .blocks-group-item.blocks-paste-item {
+        a .title { color: @link-color; }
+        i { color: @link-color; }
     }
 
     .field-block-items {
