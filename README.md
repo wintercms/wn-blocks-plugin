@@ -148,7 +148,7 @@ config:
 
 ## Collapsible Sections
 
-Block fields that use `type: section` can be made collapsible directly in the block YAML — no `containerAttributes` required.
+Block fields that use `type: section` can be made collapsible directly in the block YAML.
 
 ```yaml
 fields:
