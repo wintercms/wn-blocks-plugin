@@ -1,0 +1,5 @@
+include: $/winter/blocks/tests/fixtures/blocks/includes/_base.yaml
+fields:
+    mid_field:
+        label: Mid
+        type: text

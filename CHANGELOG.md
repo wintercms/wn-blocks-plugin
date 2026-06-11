@@ -36,6 +36,15 @@ Entries below describe changes that diverge from upstream.
 - **Recently used blocks** are pinned to the top of the "add block" palette
   (tracked in `localStorage`, most-recent first).
 
+### Tests
+- `BlockManagerTest`: include merging, block-overrides-include precedence,
+  nested includes, circular-include guard, missing-file skip, multiple includes,
+  and the no-include no-op.
+- `BlocksTest`: `collapsible`/`collapsed` shorthand translation to
+  `data-block-collapsible` / `data-block-collapsible-open`, and that non-section
+  / plain-section fields are left untouched.
+- Fixtures under `tests/fixtures/blocks/includes/`.
+
 ### Housekeeping
 - Documented the two distinct `blocks.js` files (frontend Snowboard build vs.
   backend FormWidget script) in `winter.mix.js` to prevent accidental merging.
