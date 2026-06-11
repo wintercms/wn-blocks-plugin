@@ -53,6 +53,7 @@ class Blocks extends Repeater
     {
         $this->addCss('css/blocks.css', 'Winter.Blocks');
         $this->addJs('js/blocks.js', 'Winter.Blocks');
+        $this->addJs('js/collapsible.js', 'Winter.Blocks');
     }
 
     /**
@@ -203,12 +204,14 @@ class Blocks extends Repeater
             }
 
             $definitions[$code] = [
-                'code' => $code,
-                'name' => array_get($config, 'name'),
-                'icon' => array_get($config, 'icon', 'icon-square-o'),
-                'description' => array_get($config, 'description'),
-                'fields' => array_get($config, 'fields'),
-                'config' => array_get($config, 'config', null),
+                'code'          => $code,
+                'name'          => array_get($config, 'name'),
+                'icon'          => array_get($config, 'icon', 'icon-square-o'),
+                'description'   => array_get($config, 'description'),
+                'fields'        => $this->normalizeBlockFields((array) array_get($config, 'fields', [])),
+                'tabs'          => array_get($config, 'tabs'),
+                'secondaryTabs' => array_get($config, 'secondaryTabs'),
+                'config'        => array_get($config, 'config', null),
             ];
         }
 
@@ -217,6 +220,69 @@ class Blocks extends Repeater
 
         $this->groupDefinitions = $definitions;
         $this->useGroups = true;
+    }
+
+    /**
+     * Translates block YAML shorthands before the fields are handed to the form widget.
+     *
+     * Supported shorthands on `type: section` fields:
+     *   collapsible: true          — makes the section click-to-collapse
+     *   collapsed: true|false      — initial state (true = start collapsed, false = start open)
+     *                                defaults to true when collapsible is set
+     */
+    protected function normalizeBlockFields(array $fields): array
+    {
+        foreach ($fields as &$field) {
+            if (($field['type'] ?? '') !== 'section') {
+                continue;
+            }
+
+            if (!array_key_exists('collapsible', $field)) {
+                continue;
+            }
+
+            if ($field['collapsible']) {
+                $startCollapsed = $field['collapsed'] ?? true;
+
+                $field['containerAttributes'] = array_merge(
+                    $field['containerAttributes'] ?? [],
+                    ['data-field-collapsible' => 1]
+                );
+
+                if (!$startCollapsed) {
+                    $field['containerAttributes']['data-field-collapsible-open'] = 1;
+                }
+            }
+
+            unset($field['collapsible'], $field['collapsed']);
+        }
+
+        return $fields;
+    }
+
+    /**
+     * Extends the parent config to pass tabs and secondaryTabs from the block
+     * definition through to the Backend Form widget.
+     */
+    protected function getGroupFormFieldConfig($code): ?array
+    {
+        $config = parent::getGroupFormFieldConfig($code);
+
+        if ($config === null) {
+            return null;
+        }
+
+        $def = $this->groupDefinitions[$code] ?? [];
+
+        if (!empty($def['tabs'])) {
+            $config['tabs'] = $def['tabs'];
+        }
+
+        if (!empty($def['secondaryTabs'])) {
+            $config['secondaryTabs'] = $def['secondaryTabs'];
+        }
+
+        return $config;
     }
 
     /**
