@@ -114,6 +114,25 @@
         var RECENT_MAX = 6;
         var CLIPBOARD_KEY = 'wnBlocksClipboard';
 
+        // --- inject toolbar styles once ------------------------------------
+        // Kept here (rather than only in blocks.less) so the per-block copy/cut/
+        // paste/remove toolbar renders correctly even if the compiled CSS is stale.
+        (function injectToolbarCss() {
+            if (document.getElementById('wn-blocks-toolbar-css')) { return; }
+            var css =
+                '.block-item-toolbar{display:inline-flex;align-items:center;gap:1px}' +
+                '.block-item-action{float:none;display:inline-flex;align-items:center;' +
+                'justify-content:center;width:22px;height:22px;padding:0;margin:0;border:0;' +
+                'background:none;cursor:pointer;color:#95a5a6;opacity:.7;font-size:13px;' +
+                'line-height:1;border-radius:3px;transition:background .15s,color .15s,opacity .15s}' +
+                '.block-item-action:hover{opacity:1;background:rgba(0,0,0,.06);color:#34495e}' +
+                '.block-item-action-remove:hover{color:#cc3300}';
+            var style = document.createElement('style');
+            style.id = 'wn-blocks-toolbar-css';
+            style.textContent = css;
+            (document.head || document.documentElement).appendChild(style);
+        })();
+
         // --- safe localStorage helpers -------------------------------------
         function lsGet(key) {
             try { return window.localStorage.getItem(key); } catch (e) { return null; }
@@ -181,7 +200,7 @@
                 var fieldBlocks = btn.closest('.field-blocks');
                 var tmpl = fieldBlocks && fieldBlocks.querySelector('[data-group-palette-template]');
                 var available = tmpl && (tmpl.textContent || tmpl.innerHTML)
-                    .indexOf('data-block-code=”' + cb.group + '”') !== -1;
+                    .indexOf('data-block-code="' + cb.group + '"') !== -1;
                 btn.style.display = available ? '' : 'none';
             });
         }
@@ -194,7 +213,7 @@
             // Parse the template text to extract data-request from the matching link.
             var div = document.createElement('div');
             div.innerHTML = tmpl.textContent || tmpl.innerHTML;
-            var link = div.querySelector('a[data-block-code=”' + groupCode + '”]');
+            var link = div.querySelector('a[data-block-code="' + groupCode + '"]');
             return link ? link.getAttribute('data-request') : null;
         }
 

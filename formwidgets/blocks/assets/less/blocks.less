@@ -5,6 +5,45 @@
 .field-blocks {
     padding-top: 5px;
 
+    // Per-block toolbar: copy / cut / paste / remove, aligned horizontally.
+    // Mirrored as an inline-injected <style> in the block widget partial so the
+    // toolbar still renders correctly when the compiled CSS is stale.
+    .block-item-toolbar {
+        display: inline-flex;
+        align-items: center;
+        gap: 1px;
+    }
+
+    .block-item-action {
+        float: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+        color: #95a5a6;
+        opacity: .7;
+        font-size: 13px;
+        line-height: 1;
+        border-radius: 3px;
+        transition: background .15s, color .15s, opacity .15s;
+
+        &:hover {
+            opacity: 1;
+            background: rgba(0, 0, 0, .06);
+            color: #34495e;
+        }
+
+        &.block-item-action-remove:hover {
+            color: #cc3300;
+        }
+    }
+
     .field-block-items {
         counter-reset: repeater-index-counter;
     }

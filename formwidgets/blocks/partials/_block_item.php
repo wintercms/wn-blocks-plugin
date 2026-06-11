@@ -11,26 +11,25 @@ $itemIcon = $this->getGroupIcon($groupCode);
 >
 
     <?php if (!$this->previewMode) : ?>
-        <div class="repeater-item-remove" style="display:flex;align-items:center;gap:2px">
-            <button type="button" class="close" aria-label="Copy block" title="Copy" data-block-copy style="float:none;font-size:13px;opacity:.7">
+        <div class="repeater-item-remove block-item-toolbar">
+            <button type="button" class="block-item-action" aria-label="Copy block" title="Copy" data-block-copy>
                 <i class="icon-copy"></i>
             </button>
-            <button type="button" class="close" aria-label="Cut block" title="Cut" data-block-cut style="float:none;font-size:13px;opacity:.7">
+            <button type="button" class="block-item-action" aria-label="Cut block" title="Cut" data-block-cut>
                 <i class="icon-scissors"></i>
             </button>
-            <button type="button" class="close" aria-label="Paste after this block" title="Paste after" data-block-paste style="float:none;font-size:13px;opacity:.7;display:none">
+            <button type="button" class="block-item-action" aria-label="Paste after this block" title="Paste after" data-block-paste style="display:none">
                 <i class="icon-paste"></i>
             </button>
             <button
                 type="button"
-                class="close"
-                style="float:none"
+                class="block-item-action block-item-action-remove"
                 aria-label="Remove"
                 data-repeater-remove
                 data-request="<?= $this->getEventHandler('onRemoveItem') ?>"
                 data-request-data="'_repeater_index': '<?= $indexValue ?>', '_repeater_group': '<?= $groupCode ?>'"
                 data-request-confirm="<?= e(trans('backend::lang.form.action_confirm')) ?>">
-                <span aria-hidden="true">&times;</span>
+                <i class="icon-times"></i>
             </button>
         </div>
     <?php endif ?>
