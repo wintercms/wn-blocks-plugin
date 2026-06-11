@@ -12,6 +12,12 @@ $itemIcon = $this->getGroupIcon($groupCode);
 
     <?php if (!$this->previewMode) : ?>
         <div class="repeater-item-remove">
+            <button type="button" class="close" aria-label="Copy block" title="Copy" data-block-copy>
+                <i class="icon-copy" style="font-size:13px;opacity:.7"></i>
+            </button>
+            <button type="button" class="close" aria-label="Cut block" title="Cut" data-block-cut>
+                <i class="icon-scissors" style="font-size:13px;opacity:.7"></i>
+            </button>
             <button
                 type="button"
                 class="close"

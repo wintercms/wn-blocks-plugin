@@ -112,6 +112,7 @@
         var COLLAPSE_PREFIX = 'wnBlocksCollapse:';
         var RECENT_KEY = 'wnBlocksRecent';
         var RECENT_MAX = 6;
+        var CLIPBOARD_KEY = 'wnBlocksClipboard';
 
         // --- safe localStorage helpers -------------------------------------
         function lsGet(key) {
@@ -119,6 +120,124 @@
         }
         function lsSet(key, val) {
             try { window.localStorage.setItem(key, val); } catch (e) {}
+        }
+
+        // --- safe sessionStorage helpers -----------------------------------
+        function ssGet(key) {
+            try { return window.sessionStorage.getItem(key); } catch (e) { return null; }
+        }
+        function ssSet(key, val) {
+            try { window.sessionStorage.setItem(key, val); } catch (e) {}
+        }
+
+        // --- block clipboard (copy / cut / paste) -------------------------
+        function getClipboard() {
+            try {
+                var raw = ssGet(CLIPBOARD_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) { return null; }
+        }
+
+        // Serialize all named inputs in a block <li> by their trailing [key] segment.
+        // The _group hidden input gives us the block type; all other inputs are field data.
+        // Nested blocks fields store their JSON in a hidden input, so they serialize cleanly.
+        function serializeBlockItem(li) {
+            var data = { group: null, fields: {} };
+            li.querySelectorAll('input[name], select[name], textarea[name]').forEach(function (el) {
+                var m = el.name.match(/\[([^\[\]]+)\]$/);
+                if (!m) { return; }
+                var key = m[1];
+                if (key === '_group') {
+                    if (!data.group) { data.group = el.value; }
+                } else {
+                    data.fields[key] = el.value;
+                }
+            });
+            return data;
+        }
+
+        // Fill form inputs in a newly added <li> from stored field values.
+        // Matches by trailing [key] segment — works for flat fields and JSON hidden inputs.
+        function fillFromClipboard(li, fields) {
+            li.querySelectorAll('input[name], select[name], textarea[name]').forEach(function (el) {
+                var m = el.name.match(/\[([^\[\]]+)\]$/);
+                if (!m) { return; }
+                var key = m[1];
+                if (Object.prototype.hasOwnProperty.call(fields, key)) {
+                    el.value = fields[key];
+                    // Dispatch change so any widget listeners (e.g. select2, codemirror) react.
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        }
+
+        // Copy button
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-block-copy]');
+            if (!btn) { return; }
+            e.stopPropagation();
+            var li = btn.closest('.field-block-item');
+            if (!li) { return; }
+            ssSet(CLIPBOARD_KEY, JSON.stringify(serializeBlockItem(li)));
+        });
+
+        // Cut button: copy then trigger the existing remove button (with confirm).
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-block-cut]');
+            if (!btn) { return; }
+            e.stopPropagation();
+            var li = btn.closest('.field-block-item');
+            if (!li) { return; }
+            ssSet(CLIPBOARD_KEY, JSON.stringify(serializeBlockItem(li)));
+            var removeBtn = li.querySelector('[data-repeater-remove]');
+            if (removeBtn) { removeBtn.click(); }
+        });
+
+        // Paste button (injected into the palette by applyPasteItem below).
+        // Sets a pending-paste flag, then programmatically clicks the matching block's
+        // add-link so onAddItem runs normally. The MutationObserver detects the new <li>
+        // and fills its fields from the clipboard.
+        document.addEventListener('click', function (e) {
+            var a = e.target.closest('[data-block-paste]');
+            if (!a) { return; }
+            e.preventDefault();
+            e.stopPropagation();
+            var cb = getClipboard();
+            if (!cb || !cb.group) { return; }
+            window.__pendingPaste = cb.fields;
+            var grid = a.closest('.blocks-group-grid');
+            var addLink = grid && grid.querySelector(
+                'a[data-block-code="' + cb.group + '"][data-repeater-add]'
+            );
+            if (addLink) { addLink.click(); }
+        });
+
+        // Inject a "Paste block" item at the top of the palette when clipboard has data
+        // and the block type is available in this widget's palette.
+        function applyPasteItem() {
+            document.querySelectorAll('.blocks-group-grid').forEach(function (grid) {
+                var existing = grid.querySelector('[data-block-paste]');
+                if (existing) { existing.closest('.blocks-group-item').remove(); }
+
+                var cb = getClipboard();
+                if (!cb || !cb.group) { return; }
+
+                var matchLink = grid.querySelector(
+                    'a[data-block-code="' + cb.group + '"][data-repeater-add]'
+                );
+                if (!matchLink) { return; }
+
+                var item = document.createElement('div');
+                item.className = 'blocks-group-item';
+                item.innerHTML =
+                    '<a href="javascript:;" data-block-paste data-block-code="' + cb.group + '">' +
+                    '<i class="icon-paste"></i>' +
+                    '<div>' +
+                    '<span class="title">Paste block</span>' +
+                    '<span class="description">Paste copied “' + cb.group + '” block</span>' +
+                    '</div></a>';
+                grid.insertBefore(item, grid.firstChild);
+            });
         }
 
         // --- collapsible sections ------------------------------------------
@@ -214,12 +333,25 @@
         }
 
         // --- shared init + observer ----------------------------------------
-        function runAll() { initSections(); applyRecent(); }
+        function runAll() { initSections(); applyRecent(); applyPasteItem(); }
 
         runAll();
 
         var scheduled = false;
-        var observer = new MutationObserver(function () {
+        var observer = new MutationObserver(function (mutations) {
+            // Fill clipboard fields into a newly added block item immediately,
+            // before the debounced runAll() fires, so inputs are ready.
+            if (window.__pendingPaste) {
+                for (var i = 0; i < mutations.length; i++) {
+                    mutations[i].addedNodes.forEach(function (node) {
+                        if (node.nodeType === 1 && node.classList &&
+                                node.classList.contains('field-block-item')) {
+                            fillFromClipboard(node, window.__pendingPaste);
+                            window.__pendingPaste = null;
+                        }
+                    });
+                }
+            }
             if (scheduled) { return; }
             scheduled = true;
             setTimeout(function () { scheduled = false; runAll(); }, 0);

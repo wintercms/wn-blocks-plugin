@@ -293,6 +293,20 @@ When adding a block from the palette, the blocks you use most recently are pinne
 
 ---
 
+## Copy, cut and paste blocks
+
+Each block has **Copy** and **Cut** icon buttons next to the remove (×) button.
+
+- **Copy** — serializes the block's current field values to `sessionStorage`.
+- **Cut** — copies then immediately triggers the remove button (with the usual confirmation prompt).
+- **Paste** — when the clipboard holds a block, a **Paste block** entry appears at the top of the "add block" palette. Clicking it adds a fresh block of that type and fills all its fields with the copied values.
+
+Paste respects the widget's `allow` / `ignore` / `tags` constraints: if the copied block type is not available in the target widget's palette, the Paste entry is not shown. The clipboard persists for the duration of the browser session (`sessionStorage`), so you can paste across different pages in the same tab.
+
+> **Note on nested blocks:** Field values — including nested `blocks` fields, which store their content as JSON — are captured and restored correctly. Complex editor widgets (e.g. rich-text, code editors) may require an extra click to refresh their UI after paste, as those widgets listen for native `change` events.
+
+---
+
 ## Using the `blocks` FormWidget
 
 In order to provide an interface for managing block-based content, this plugin provides the `blocks` FormWidget. This widget can be used in the backend as a form field to manage blocks.
