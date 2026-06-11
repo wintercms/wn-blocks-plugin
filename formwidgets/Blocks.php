@@ -244,13 +244,19 @@ class Blocks extends Repeater
             if ($field['collapsible']) {
                 $startCollapsed = $field['collapsed'] ?? true;
 
+                // Use our own data attribute (NOT data-field-collapsible) so the
+                // core form widget's bindCollapsibleSections() never touches these
+                // sections. Core re-runs that on every FormWidget init — including
+                // when a nested repeater adds an item — which would re-collapse and
+                // double-bind handlers on sections the user manually opened. We own
+                // the behaviour entirely in collapsible.js instead.
                 $field['containerAttributes'] = array_merge(
                     $field['containerAttributes'] ?? [],
-                    ['data-field-collapsible' => 1]
+                    ['data-block-collapsible' => 1]
                 );
 
                 if (!$startCollapsed) {
-                    $field['containerAttributes']['data-field-collapsible-open'] = 1;
+                    $field['containerAttributes']['data-block-collapsible-open'] = 1;
                 }
             }
 

@@ -1,114 +1,84 @@
 /**
- * Manages collapsible section state for block form widgets.
+ * Self-contained collapsible sections for block form widgets.
  *
- * WinterCMS calls bindCollapsibleSections() after every AJAX call, re-collapsing
- * all [data-field-collapsible] sections. Reacting after the fact (MutationObserver,
- * setTimeout) is unreliable because the repeater's post-AJAX widget initialisation
- * may trigger further collapse passes after our correction fires.
+ * Why this exists instead of reusing core's data-field-collapsible:
  *
- * Primary strategy — prevent, not fix:
- *   Before each AJAX request (ajaxBeforeSend), temporarily strip data-field-collapsible
- *   from any section the user has manually opened. bindCollapsibleSections() cannot
- *   find what it cannot select. After the request completes (ajaxComplete), the
- *   attribute is restored.
+ *   WinterCMS's FormWidget.bindCollapsibleSections() runs on EVERY FormWidget
+ *   init(), scoped to the closest <form>. When a nested repeater adds an item,
+ *   a new FormWidget initialises, finds the shared parent form, and re-collapses
+ *   ALL data-field-collapsible sections in it while binding a SECOND click
+ *   handler to each. The doubled handler is why adding a repeater item appeared
+ *   to "stall" (two toggles cancel out) and why manually-opened sections snapped
+ *   shut again.
  *
- * Backup — MutationObserver:
- *   Catches any programmatic re-collapse that slips through (e.g. from non-AJAX
- *   widget initialisation). A userTogglingSection flag prevents it from fighting
- *   genuine user click-to-collapse actions.
- *
- * User open/close state is stored as data-user-opened on the element itself so it
- * survives across AJAX calls and DOM updates.
+ * Solution:
+ *   Blocks.php emits data-block-collapsible (and data-block-collapsible-open),
+ *   which core's JS never selects, so core never collapses or binds these.
+ *   This file owns everything:
+ *     - one-time init per section (guarded by .block-collapsible-ready)
+ *     - a single delegated click handler on document (cannot double-bind)
+ *   It reuses core's .is-collapsible / .collapsed CSS classes so the visual
+ *   styling (chevron, hover) is identical to native collapsible sections.
  */
 (function () {
-    var userTogglingSection = false;
+    var READY_CLASS = 'block-collapsible-ready';
 
-    function openSection(section) {
-        section.classList.remove('collapsed');
+    // Collect the fields that follow a section header up to the next section.
+    function followingFields(section) {
+        var els = [];
         var el = section.nextElementSibling;
         while (el && !el.classList.contains('section-field')) {
-            el.style.display = '';
+            els.push(el);
             el = el.nextElementSibling;
         }
+        return els;
     }
 
-    // Re-open sections configured with collapsed: false
-    function openConfiguredSections(root) {
-        (root || document).querySelectorAll(
-            '.section-field[data-field-collapsible][data-field-collapsible-open]'
-        ).forEach(openSection);
+    function setCollapsed(section, collapsed) {
+        section.classList.toggle('collapsed', collapsed);
+        followingFields(section).forEach(function (el) {
+            el.style.display = collapsed ? 'none' : '';
+        });
     }
 
-    // Track whether the current click is a user-initiated section toggle so the
-    // MutationObserver knows not to undo it.
-    document.addEventListener('click', function (e) {
-        var section = e.target.closest('.section-field[data-field-collapsible]');
-        if (!section) return;
+    // One-time setup for any not-yet-initialised collapsible section.
+    function initSections(root) {
+        (root || document)
+            .querySelectorAll('.section-field[data-block-collapsible]:not(.' + READY_CLASS + ')')
+            .forEach(function (section) {
+                section.classList.add(READY_CLASS);
 
-        userTogglingSection = true;
-        setTimeout(function () {
-            userTogglingSection = false;
-            if (section.classList.contains('collapsed')) {
-                section.removeAttribute('data-user-opened');
-            } else {
-                section.setAttribute('data-user-opened', '1');
-            }
-        }, 0);
-    });
-
-    // --- Primary fix: shield user-opened sections from bindCollapsibleSections ---
-
-    // Before any AJAX call, hide user-opened sections from WinterCMS by removing
-    // data-field-collapsible so bindCollapsibleSections() cannot select them.
-    document.addEventListener('ajaxBeforeSend', function () {
-        document.querySelectorAll('.section-field[data-field-collapsible][data-user-opened]')
-            .forEach(function (s) {
-                s.removeAttribute('data-field-collapsible');
-                s.setAttribute('data-fc-suspended', '1');
-            });
-    });
-
-    // After the AJAX call (success or failure), restore the attribute.
-    document.addEventListener('ajaxComplete', function () {
-        document.querySelectorAll('.section-field[data-fc-suspended]')
-            .forEach(function (s) {
-                s.setAttribute('data-field-collapsible', '1');
-                s.removeAttribute('data-fc-suspended');
-            });
-        // Also re-open any collapsed: false sections in newly injected HTML
-        setTimeout(openConfiguredSections, 0);
-    });
-
-    // --- Backup: MutationObserver for non-AJAX re-collapses ---
-
-    function setupObserver() {
-        var observer = new MutationObserver(function (mutations) {
-            if (userTogglingSection) return;
-            mutations.forEach(function (mutation) {
-                var section = mutation.target;
-                if (
-                    section.hasAttribute('data-user-opened') &&
-                    section.classList.contains('collapsed')
-                ) {
-                    openSection(section);
+                // Apply core's styling hook for the chevron + pointer cursor.
+                var header = section.querySelector('.field-section');
+                if (header) {
+                    header.classList.add('is-collapsible');
                 }
+
+                // Initial state: collapsed unless explicitly marked open.
+                var startOpen = section.hasAttribute('data-block-collapsible-open');
+                setCollapsed(section, !startOpen);
             });
-        });
-        observer.observe(document.body, {
-            attributes: true,
-            attributeFilter: ['class'],
-            subtree: true,
-        });
     }
 
-    // Initial open pass + observer setup after the form widget has initialised
+    // Single delegated click handler — never doubles regardless of widget inits.
+    document.addEventListener('click', function (e) {
+        var section = e.target.closest('.section-field[data-block-collapsible]');
+        if (!section) {
+            return;
+        }
+        setCollapsed(section, !section.classList.contains('collapsed'));
+    });
+
+    // Initial pass.
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () {
-            openConfiguredSections();
-            setupObserver();
-        });
+        document.addEventListener('DOMContentLoaded', function () { initSections(); });
     } else {
-        setTimeout(openConfiguredSections, 0);
-        setupObserver();
+        initSections();
     }
+
+    // Initialise sections inside any HTML injected by AJAX (new repeater items,
+    // newly added blocks). Already-initialised sections are skipped via the
+    // guard class, so existing open/closed state is preserved.
+    document.addEventListener('ajaxSuccess', function () { initSections(); });
+    document.addEventListener('render', function () { initSections(); });
 })();
