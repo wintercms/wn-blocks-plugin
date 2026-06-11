@@ -85,4 +85,78 @@
             </div>
         </div>
     </script>
+
+    <?php
+    /*
+     * Inline bootstrap for collapsible block sections.
+     *
+     * Loaded inline (rather than only via addJs) so it is guaranteed to reach the
+     * page regardless of widget asset-path resolution or the asset combiner. A
+     * global guard ensures the handlers are registered only once even when several
+     * block widgets render on the same page.
+     *
+     * Behaviour lives on the data-block-collapsible attribute, which the core form
+     * widget's bindCollapsibleSections() never selects — so core cannot re-collapse
+     * or double-bind these sections when a nested repeater adds an item.
+     */
+    ?>
+    <script>
+    (function () {
+        if (window.__blockCollapsibleInit) { return; }
+        window.__blockCollapsibleInit = true;
+
+        var READY = 'block-collapsible-ready';
+
+        function followingFields(section) {
+            var els = [], el = section.nextElementSibling;
+            while (el && !el.classList.contains('section-field')) {
+                els.push(el);
+                el = el.nextElementSibling;
+            }
+            return els;
+        }
+
+        function setCollapsed(section, collapsed) {
+            section.classList.toggle('collapsed', collapsed);
+            followingFields(section).forEach(function (el) {
+                el.style.display = collapsed ? 'none' : '';
+            });
+        }
+
+        function initSections() {
+            document.querySelectorAll(
+                '.section-field[data-block-collapsible]:not(.' + READY + ')'
+            ).forEach(function (section) {
+                section.classList.add(READY);
+                var header = section.querySelector('.field-section');
+                if (header) { header.classList.add('is-collapsible'); }
+                var startOpen = section.hasAttribute('data-block-collapsible-open');
+                setCollapsed(section, !startOpen);
+            });
+        }
+
+        document.addEventListener('click', function (e) {
+            var section = e.target.closest('.section-field[data-block-collapsible]');
+            if (!section) { return; }
+            setCollapsed(section, !section.classList.contains('collapsed'));
+        });
+
+        initSections();
+
+        var scheduled = false;
+        var observer = new MutationObserver(function () {
+            if (scheduled) { return; }
+            scheduled = true;
+            setTimeout(function () { scheduled = false; initSections(); }, 0);
+        });
+        function startObserving() {
+            if (document.body) {
+                observer.observe(document.body, { childList: true, subtree: true });
+            } else {
+                document.addEventListener('DOMContentLoaded', startObserving);
+            }
+        }
+        startObserving();
+    })();
+    </script>
 </div>
