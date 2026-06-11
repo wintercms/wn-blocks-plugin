@@ -14,11 +14,15 @@
  * Solution:
  *   Blocks.php emits data-block-collapsible (and data-block-collapsible-open),
  *   which core's JS never selects, so core never collapses or binds these.
- *   This file owns everything:
- *     - one-time init per section (guarded by .block-collapsible-ready)
- *     - a single delegated click handler on document (cannot double-bind)
- *   It reuses core's .is-collapsible / .collapsed CSS classes so the visual
- *   styling (chevron, hover) is identical to native collapsible sections.
+ *   This file owns everything and reuses core's .is-collapsible / .collapsed CSS
+ *   classes so the styling is identical to native collapsible sections.
+ *
+ * Init detection uses a MutationObserver rather than DOMContentLoaded / ajax
+ * events: the block form fields (and nested repeater items) are injected by
+ * AJAX, and the backend dispatches its lifecycle events through jQuery, which
+ * native addEventListener handlers do not reliably receive. The observer fires
+ * on any DOM insertion regardless of framework, so newly rendered sections are
+ * always picked up. A per-section guard class makes init idempotent and cheap.
  */
 (function () {
     var READY_CLASS = 'block-collapsible-ready';
@@ -42,8 +46,8 @@
     }
 
     // One-time setup for any not-yet-initialised collapsible section.
-    function initSections(root) {
-        (root || document)
+    function initSections() {
+        document
             .querySelectorAll('.section-field[data-block-collapsible]:not(.' + READY_CLASS + ')')
             .forEach(function (section) {
                 section.classList.add(READY_CLASS);
@@ -60,7 +64,8 @@
             });
     }
 
-    // Single delegated click handler — never doubles regardless of widget inits.
+    // Single delegated click handler — native click events bubble normally, so
+    // addEventListener is reliable here (unlike framework lifecycle events).
     document.addEventListener('click', function (e) {
         var section = e.target.closest('.section-field[data-block-collapsible]');
         if (!section) {
@@ -69,16 +74,31 @@
         setCollapsed(section, !section.classList.contains('collapsed'));
     });
 
-    // Initial pass.
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () { initSections(); });
-    } else {
-        initSections();
-    }
+    // Run once now for anything already present.
+    initSections();
 
-    // Initialise sections inside any HTML injected by AJAX (new repeater items,
-    // newly added blocks). Already-initialised sections are skipped via the
-    // guard class, so existing open/closed state is preserved.
-    document.addEventListener('ajaxSuccess', function () { initSections(); });
-    document.addEventListener('render', function () { initSections(); });
+    // Watch for sections injected later (block forms, repeater items). Observing
+    // childList only — our own class/style writes are attribute mutations and
+    // won't retrigger this, so there is no feedback loop.
+    var scheduled = false;
+    var observer = new MutationObserver(function () {
+        if (scheduled) {
+            return;
+        }
+        scheduled = true;
+        // Coalesce bursts of insertions into a single pass.
+        (window.requestAnimationFrame || window.setTimeout)(function () {
+            scheduled = false;
+            initSections();
+        }, 0);
+    });
+
+    function startObserving() {
+        if (document.body) {
+            observer.observe(document.body, { childList: true, subtree: true });
+        } else {
+            document.addEventListener('DOMContentLoaded', startObserving);
+        }
+    }
+    startObserving();
 })();
