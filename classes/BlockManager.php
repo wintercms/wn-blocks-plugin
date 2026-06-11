@@ -7,6 +7,7 @@ use Cms\Classes\Controller;
 use Cms\Classes\Theme;
 use Event;
 use File;
+use Yaml;
 use System\Classes\PluginManager;
 use Winter\Storm\Support\Traits\Singleton;
 use Winter\Storm\Support\Str;
@@ -98,7 +99,7 @@ class BlockManager
                 }
             }
 
-            $configs[pathinfo($block['fileName'])['filename']] = array_except(
+            $config = array_except(
                 $block->getAttributes(),
                 [
                     'fileName',
@@ -108,9 +109,76 @@ class BlockManager
                     'code',
                 ]
             );
+
+            $config = $this->resolveIncludes($config);
+
+            $configs[pathinfo($block['fileName'])['filename']] = $config;
         }
 
         return $configs;
+    }
+
+    /**
+     * Resolves an `include` directive in a block definition by merging field
+     * definitions from one or more external YAML files.
+     *
+     * A block may declare:
+     *
+     *     include: $/author/plugin/blocks/_shared.yaml
+     *     # or
+     *     include:
+     *         - $/author/plugin/blocks/_seo.yaml
+     *         - ~/app/blocks/_tracking.yaml
+     *
+     * Each included file is a plain YAML file that may contain any of the keys
+     * `fields`, `tabs`, `secondaryTabs` and `config`. Included definitions are
+     * merged in order and act as a base; the block's own definitions take
+     * precedence on key collisions.
+     *
+     * Paths are resolved with File::symbolizePath(), so the usual Winter symbols
+     * are supported ($ = plugins, ~ = app, # = app/storage/...).
+     */
+    protected function resolveIncludes(array $config): array
+    {
+        if (empty($config['include'])) {
+            unset($config['include']);
+            return $config;
+        }
+
+        $paths = (array) $config['include'];
+        unset($config['include']);
+
+        $mergeKeys = ['fields', 'tabs', 'secondaryTabs', 'config'];
+
+        foreach ($paths as $path) {
+            if (!is_string($path) || $path === '') {
+                continue;
+            }
+
+            $realPath = File::symbolizePath($path);
+            if (!$realPath || !File::exists($realPath)) {
+                continue;
+            }
+
+            $included = Yaml::parse(File::get($realPath));
+            if (!is_array($included)) {
+                continue;
+            }
+
+            foreach ($mergeKeys as $key) {
+                if (!isset($included[$key]) || !is_array($included[$key])) {
+                    continue;
+                }
+
+                // Included definitions form the base; the block's own win on collision.
+                $config[$key] = array_replace_recursive(
+                    $included[$key],
+                    (isset($config[$key]) && is_array($config[$key])) ? $config[$key] : []
+                );
+            }
+        }
+
+        return $config;
     }
 
     /**

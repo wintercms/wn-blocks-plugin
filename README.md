@@ -8,7 +8,7 @@ Provides a "block based" content management experience in Winter CMS
 
 >**NOTE:** This plugin is still in development and is likely to undergo changes. Do not use in production environments without using a version constraint in your composer.json file and carefully monitoring for breaking changes.
 
-> **Fork note:** This is a fork of [wintercms/wn-blocks-plugin](https://github.com/wintercms/wn-blocks-plugin) that adds **collapsible sections** and **tabs/secondaryTabs** support in block definitions. See [Collapsible Sections](#collapsible-sections) and [Tabs](#tabs) below.
+> **Fork note:** This is a fork of [wintercms/wn-blocks-plugin](https://github.com/wintercms/wn-blocks-plugin) that adds **collapsible sections**, **tabs/secondaryTabs** support, and **shared field includes** in block definitions. See [Collapsible Sections](#collapsible-sections), [Tabs](#tabs), and [Including shared field definitions](#including-shared-field-definitions) below.
 
 ## Installation
 
@@ -218,6 +218,70 @@ secondaryTabs:
 ```
 
 Fields declared under `tabs` / `secondaryTabs` are placed in the tabbed area of the form widget. You can combine `tabs`, `secondaryTabs`, and the top-level `fields` array in the same block.
+
+---
+
+## Including shared field definitions
+
+To avoid repeating the same fields (or sections/tabs) across many blocks, a block can pull them in from one or more external YAML files via the top-level `include` key.
+
+```yaml
+name: Article
+description: An article block
+icon: icon-newspaper
+
+include: $/myauthor/myplugin/blocks/_seo.yaml
+
+fields:
+    title:
+        label: Title
+        type: text
+==
+<article>{{ title }}</article>
+```
+
+`_seo.yaml` is a plain YAML file (no `==` markup, no block metadata) containing any of `fields`, `tabs`, `secondaryTabs`, or `config`:
+
+```yaml
+# blocks/_seo.yaml
+tabs:
+    fields:
+        meta_title:
+            label: Meta title
+            type: text
+            tab: SEO
+        meta_description:
+            label: Meta description
+            type: textarea
+            tab: SEO
+```
+
+**Multiple includes** — pass a list; they are merged in order:
+
+```yaml
+include:
+    - $/myauthor/myplugin/blocks/_seo.yaml
+    - ~/app/blocks/_tracking.yaml
+```
+
+**Merge rules:**
+
+| | |
+|---|---|
+| Merged keys | `fields`, `tabs`, `secondaryTabs`, `config` |
+| Precedence | Included files form the base; the block's own definitions **override** on key collision |
+| Order | Multiple includes merge top-to-bottom (later files override earlier ones, the block still wins overall) |
+| Missing files | Silently skipped |
+
+**Path resolution** uses the standard Winter path symbols via `File::symbolizePath()`:
+
+| Symbol | Resolves to |
+|---|---|
+| `$/author/plugin/...` | `plugins/author/plugin/...` |
+| `~/...` | application root |
+| `#/...` | `storage/app/...` |
+
+This works for `collapsible` sections and tabs too — an included file can define a complete collapsible section (or a whole tab group) that every block reuses without copy-paste.
 
 ---
 
