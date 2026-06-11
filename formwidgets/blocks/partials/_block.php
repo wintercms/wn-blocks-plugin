@@ -126,7 +126,10 @@
                 'background:none;cursor:pointer;color:#95a5a6;opacity:.7;font-size:13px;' +
                 'line-height:1;border-radius:3px;transition:background .15s,color .15s,opacity .15s}' +
                 '.block-item-action:hover{opacity:1;background:rgba(0,0,0,.06);color:#34495e}' +
-                '.block-item-action-remove:hover{color:#cc3300}';
+                '.block-item-action-remove:hover{color:#cc3300}' +
+                '.field-block-paste-row{list-style:none;text-align:center;padding:6px 0}' +
+                '.field-block-paste-row a{font-size:13px;color:#0072bc;text-decoration:none}' +
+                '.field-block-paste-row a:hover{text-decoration:underline}';
             var style = document.createElement('style');
             style.id = 'wn-blocks-toolbar-css';
             style.textContent = css;
@@ -201,15 +204,25 @@
             return text.indexOf('data-block-code="' + group + '"') !== -1;
         }
 
-        // Show/hide paste buttons based on clipboard state and widget availability.
-        // Handles both the per-item paste button and the append button in the add-item row.
+        // Show/hide paste affordances based on clipboard state and widget availability.
+        // Per-item paste buttons toggle themselves; the append link toggles its own
+        // <li> row (so it sits on its own line under the Add button, never clipped).
+        function setPasteVisible(el, visible) {
+            if (el) { el.style.display = visible ? '' : 'none'; }
+        }
         function updatePasteButtons() {
             var cb = getClipboard();
-            var selectors = '[data-block-paste], [data-block-paste-append]';
-            document.querySelectorAll(selectors).forEach(function (btn) {
-                if (!cb || !cb.group) { btn.style.display = 'none'; return; }
+            var ok = cb && cb.group;
+
+            document.querySelectorAll('[data-block-paste]').forEach(function (btn) {
                 var fieldBlocks = btn.closest('.field-blocks');
-                btn.style.display = blockTypeAvailable(fieldBlocks, cb.group) ? '' : 'none';
+                setPasteVisible(btn, ok && blockTypeAvailable(fieldBlocks, cb.group));
+            });
+
+            document.querySelectorAll('[data-block-paste-append]').forEach(function (link) {
+                var fieldBlocks = link.closest('.field-blocks');
+                var row = link.closest('[data-block-paste-append-row]') || link;
+                setPasteVisible(row, ok && blockTypeAvailable(fieldBlocks, cb.group));
             });
         }
 

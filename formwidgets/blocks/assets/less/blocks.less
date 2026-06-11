@@ -44,6 +44,24 @@
         }
     }
 
+    // "Paste block" row shown under the Add button when the clipboard holds a
+    // compatible block. Its own list row so it is never clipped by the add item.
+    .field-block-paste-row {
+        list-style: none;
+        text-align: center;
+        padding: 6px 0;
+
+        a {
+            font-size: 13px;
+            color: @link-color;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
     .field-block-items {
         counter-reset: repeater-index-counter;
     }
