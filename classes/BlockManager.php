@@ -7,6 +7,7 @@ use Cms\Classes\Controller;
 use Cms\Classes\Theme;
 use Event;
 use File;
+use Log;
 use Yaml;
 use System\Classes\PluginManager;
 use Winter\Storm\Support\Traits\Singleton;
@@ -135,10 +136,15 @@ class BlockManager
      * merged in order and act as a base; the block's own definitions take
      * precedence on key collisions.
      *
+     * Included files may themselves declare an `include` key — nested includes
+     * are resolved recursively, guarded against circular references.
+     *
      * Paths are resolved with File::symbolizePath(), so the usual Winter symbols
      * are supported ($ = plugins, ~ = app, # = app/storage/...).
+     *
+     * @param string[] $visited Canonical paths already being resolved (cycle guard).
      */
-    protected function resolveIncludes(array $config): array
+    protected function resolveIncludes(array $config, array $visited = []): array
     {
         if (empty($config['include'])) {
             unset($config['include']);
@@ -157,6 +163,13 @@ class BlockManager
 
             $realPath = File::symbolizePath($path);
             if (!$realPath || !File::exists($realPath)) {
+                Log::warning("Winter.Blocks: included file not found: {$path}");
+                continue;
+            }
+
+            $canonical = PathResolver::standardize($realPath);
+            if (in_array($canonical, $visited, true)) {
+                Log::warning("Winter.Blocks: circular include detected, skipping: {$path}");
                 continue;
             }
 
@@ -165,20 +178,58 @@ class BlockManager
                 continue;
             }
 
+            // Resolve nested includes first so they form the deepest base layer.
+            $included = $this->resolveIncludes($included, array_merge($visited, [$canonical]));
+
             foreach ($mergeKeys as $key) {
                 if (!isset($included[$key]) || !is_array($included[$key])) {
                     continue;
                 }
 
+                $own = (isset($config[$key]) && is_array($config[$key])) ? $config[$key] : [];
+
+                // Warn when a field is redefined with a different type.
+                $this->warnOnTypeCollisions($key, $included[$key], $own);
+
                 // Included definitions form the base; the block's own win on collision.
-                $config[$key] = array_replace_recursive(
-                    $included[$key],
-                    (isset($config[$key]) && is_array($config[$key])) ? $config[$key] : []
-                );
+                $config[$key] = array_replace_recursive($included[$key], $own);
             }
         }
 
         return $config;
+    }
+
+    /**
+     * Logs a warning when merging an include would redefine a field with a
+     * different `type`, which is almost always a mistake. Field definitions live
+     * directly under `fields`/`config`, and under a `fields` sub-key for
+     * `tabs`/`secondaryTabs`.
+     */
+    protected function warnOnTypeCollisions(string $key, array $included, array $own): void
+    {
+        $nested = in_array($key, ['tabs', 'secondaryTabs'], true);
+        $includedFields = $nested ? ($included['fields'] ?? []) : $included;
+        $ownFields = $nested ? ($own['fields'] ?? []) : $own;
+
+        if (!is_array($includedFields) || !is_array($ownFields)) {
+            return;
+        }
+
+        foreach ($includedFields as $name => $def) {
+            if (!isset($ownFields[$name]) || !is_array($def) || !is_array($ownFields[$name])) {
+                continue;
+            }
+
+            $includedType = $def['type'] ?? null;
+            $ownType = $ownFields[$name]['type'] ?? null;
+
+            if ($includedType && $ownType && $includedType !== $ownType) {
+                Log::warning(
+                    "Winter.Blocks: field '{$name}' redefined with a different type " .
+                    "('{$ownType}' overrides included '{$includedType}') in '{$key}'."
+                );
+            }
+        }
     }
 
     /**

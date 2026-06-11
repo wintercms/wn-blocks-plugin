@@ -8,7 +8,7 @@ Provides a "block based" content management experience in Winter CMS
 
 >**NOTE:** This plugin is still in development and is likely to undergo changes. Do not use in production environments without using a version constraint in your composer.json file and carefully monitoring for breaking changes.
 
-> **Fork note:** This is a fork of [wintercms/wn-blocks-plugin](https://github.com/wintercms/wn-blocks-plugin) that adds **collapsible sections**, **tabs/secondaryTabs** support, and **shared field includes** in block definitions. See [Collapsible Sections](#collapsible-sections), [Tabs](#tabs), and [Including shared field definitions](#including-shared-field-definitions) below.
+> **Fork note:** This is a fork of [wintercms/wn-blocks-plugin](https://github.com/wintercms/wn-blocks-plugin) that adds **collapsible sections** (with persisted state), **tabs/secondaryTabs** support, **shared field includes** (with nested includes), and **recently used blocks** in the palette. See [Collapsible Sections](#collapsible-sections), [Tabs](#tabs), [Including shared field definitions](#including-shared-field-definitions), and [Recently used blocks](#recently-used-blocks) below. Full list in [CHANGELOG.md](CHANGELOG.md).
 
 ## Installation
 
@@ -169,7 +169,7 @@ fields:
 | `collapsible` | bool | — | Set to `true` to enable the collapse toggle |
 | `collapsed` | bool | `true` | Initial state. `false` = section starts open |
 
-When `collapsible: true` is set, the section header becomes a click target. Sections start collapsed by default; set `collapsed: false` to have the section open on first load.
+When `collapsible: true` is set, the section header becomes a click target. Sections start collapsed by default; set `collapsed: false` to have the section open on first load. Each section's open/closed state is **remembered across page reloads** (stored in `localStorage`, keyed by field name), so the editor returns to the state you left it in.
 
 > **Note:** Collapsible behaviour is handled by this fork via the `data-block-collapsible` attribute, bootstrapped inline in the block widget partial (`formwidgets/blocks/partials/_block.php`), independent of WinterCMS's core collapsible-section JS. This is deliberate: core re-collapses and re-binds every section on each form-widget init — including when a nested repeater adds an item — which broke manually-opened sections and stalled repeater "Add item" clicks. Owning the behaviour avoids that entirely, so collapsible sections work correctly even with repeater fields nested inside them.
 
@@ -271,7 +271,9 @@ include:
 | Merged keys | `fields`, `tabs`, `secondaryTabs`, `config` |
 | Precedence | Included files form the base; the block's own definitions **override** on key collision |
 | Order | Multiple includes merge top-to-bottom (later files override earlier ones, the block still wins overall) |
-| Missing files | Silently skipped |
+| Nested includes | An included file may itself declare `include:` — resolved recursively, with a circular-reference guard |
+| Type guard | Redefining a field with a different `type` than the include logs a warning |
+| Missing files | Skipped, and logged as a warning |
 
 **Path resolution** uses the standard Winter path symbols via `File::symbolizePath()`:
 
@@ -282,6 +284,12 @@ include:
 | `#/...` | `storage/app/...` |
 
 This works for `collapsible` sections and tabs too — an included file can define a complete collapsible section (or a whole tab group) that every block reuses without copy-paste.
+
+---
+
+## Recently used blocks
+
+When adding a block from the palette, the blocks you use most recently are pinned to the top of the list (tracked per browser in `localStorage`, most-recent first). This speeds up repetitive content building where the same few block types are added over and over. No configuration is required.
 
 ---
 

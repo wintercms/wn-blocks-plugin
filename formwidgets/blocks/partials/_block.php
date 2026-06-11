@@ -69,6 +69,7 @@
                                 <a
                                     href="javascript:;"
                                     data-repeater-add
+                                    data-block-code="<?= $item['code'] ?>"
                                     data-request="<?= $this->getEventHandler('onAddItem') ?>"
                                     data-request-data="_repeater_group: '<?= $item['code'] ?>'">
                                     <i class="<?= $item['icon'] ?>"></i>
@@ -88,25 +89,39 @@
 
     <?php
     /*
-     * Inline bootstrap for collapsible block sections.
+     * Inline bootstrap for block widget enhancements:
+     *   - Collapsible sections (persisting open/closed state per section)
+     *   - Recently used blocks pinned to the top of the "add block" palette
      *
      * Loaded inline (rather than only via addJs) so it is guaranteed to reach the
      * page regardless of widget asset-path resolution or the asset combiner. A
      * global guard ensures the handlers are registered only once even when several
      * block widgets render on the same page.
      *
-     * Behaviour lives on the data-block-collapsible attribute, which the core form
-     * widget's bindCollapsibleSections() never selects — so core cannot re-collapse
-     * or double-bind these sections when a nested repeater adds an item.
+     * Collapse behaviour lives on the data-block-collapsible attribute, which the
+     * core form widget's bindCollapsibleSections() never selects — so core cannot
+     * re-collapse or double-bind these sections when a nested repeater adds an item.
      */
     ?>
     <script>
     (function () {
-        if (window.__blockCollapsibleInit) { return; }
-        window.__blockCollapsibleInit = true;
+        if (window.__blockEnhancementsInit) { return; }
+        window.__blockEnhancementsInit = true;
 
         var READY = 'block-collapsible-ready';
+        var COLLAPSE_PREFIX = 'wnBlocksCollapse:';
+        var RECENT_KEY = 'wnBlocksRecent';
+        var RECENT_MAX = 6;
 
+        // --- safe localStorage helpers -------------------------------------
+        function lsGet(key) {
+            try { return window.localStorage.getItem(key); } catch (e) { return null; }
+        }
+        function lsSet(key, val) {
+            try { window.localStorage.setItem(key, val); } catch (e) {}
+        }
+
+        // --- collapsible sections ------------------------------------------
         function followingFields(section) {
             var els = [], el = section.nextElementSibling;
             while (el && !el.classList.contains('section-field')) {
@@ -123,6 +138,11 @@
             });
         }
 
+        function storageKey(section) {
+            var name = section.getAttribute('data-field-name') || '';
+            return name ? (COLLAPSE_PREFIX + name) : null;
+        }
+
         function initSections() {
             document.querySelectorAll(
                 '.section-field[data-block-collapsible]:not(.' + READY + ')'
@@ -130,24 +150,79 @@
                 section.classList.add(READY);
                 var header = section.querySelector('.field-section');
                 if (header) { header.classList.add('is-collapsible'); }
-                var startOpen = section.hasAttribute('data-block-collapsible-open');
-                setCollapsed(section, !startOpen);
+
+                // Restore persisted state if present, else fall back to config default.
+                var key = storageKey(section);
+                var stored = key ? lsGet(key) : null;
+                var collapsed = stored !== null
+                    ? stored === '1'
+                    : !section.hasAttribute('data-block-collapsible-open');
+                setCollapsed(section, collapsed);
             });
         }
 
         document.addEventListener('click', function (e) {
             var section = e.target.closest('.section-field[data-block-collapsible]');
             if (!section) { return; }
-            setCollapsed(section, !section.classList.contains('collapsed'));
+            var collapsed = !section.classList.contains('collapsed');
+            setCollapsed(section, collapsed);
+            var key = storageKey(section);
+            if (key) { lsSet(key, collapsed ? '1' : '0'); }
         });
 
-        initSections();
+        // --- recently used blocks ------------------------------------------
+        function getRecent() {
+            try {
+                var raw = lsGet(RECENT_KEY);
+                var arr = raw ? JSON.parse(raw) : [];
+                return Array.isArray(arr) ? arr : [];
+            } catch (e) { return []; }
+        }
+
+        function pushRecent(code) {
+            if (!code) { return; }
+            var arr = getRecent().filter(function (c) { return c !== code; });
+            arr.unshift(code);
+            arr = arr.slice(0, RECENT_MAX);
+            lsSet(RECENT_KEY, JSON.stringify(arr));
+        }
+
+        // Record a block as recently used whenever one is added from the palette.
+        document.addEventListener('click', function (e) {
+            var a = e.target.closest('[data-block-code]');
+            if (!a) { return; }
+            pushRecent(a.getAttribute('data-block-code'));
+        });
+
+        // When a palette grid appears, move recently used blocks to the front.
+        // Reordering (rather than cloning) avoids duplicates and styling issues
+        // and degrades gracefully if the markup differs.
+        function applyRecent() {
+            document.querySelectorAll('.blocks-group-grid:not([data-recent-processed])')
+                .forEach(function (grid) {
+                    grid.setAttribute('data-recent-processed', '1');
+                    var recent = getRecent();
+                    // Reverse so the most recent ends up first after successive prepends.
+                    recent.slice().reverse().forEach(function (code) {
+                        var link = grid.querySelector('a[data-block-code="' + code + '"]');
+                        var item = link && link.closest('.blocks-group-item');
+                        if (item && item.parentNode === grid) {
+                            grid.insertBefore(item, grid.firstChild);
+                        }
+                    });
+                });
+        }
+
+        // --- shared init + observer ----------------------------------------
+        function runAll() { initSections(); applyRecent(); }
+
+        runAll();
 
         var scheduled = false;
         var observer = new MutationObserver(function () {
             if (scheduled) { return; }
             scheduled = true;
-            setTimeout(function () { scheduled = false; initSections(); }, 0);
+            setTimeout(function () { scheduled = false; runAll(); }, 0);
         });
         function startObserving() {
             if (document.body) {
