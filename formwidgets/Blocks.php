@@ -53,7 +53,9 @@ class Blocks extends Repeater
     {
         $this->addCss('css/blocks.css', 'Winter.Blocks');
         $this->addJs('js/blocks.js', 'Winter.Blocks');
-        $this->addJs('js/collapsible.js', 'Winter.Blocks');
+        // Collapsible-section behaviour is bootstrapped inline in the block
+        // widget partial (formwidgets/blocks/partials/_block.php) so it loads
+        // reliably regardless of asset-path resolution or the asset combiner.
     }
 
     /**

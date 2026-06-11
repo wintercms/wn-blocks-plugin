@@ -171,7 +171,7 @@ fields:
 
 When `collapsible: true` is set, the section header becomes a click target. Sections start collapsed by default; set `collapsed: false` to have the section open on first load.
 
-> **Note:** Collapsible behaviour is handled entirely by the `collapsible.js` asset bundled with this fork (via the `data-block-collapsible` attribute), independent of WinterCMS's core collapsible-section JS. This is deliberate: core re-collapses and re-binds every section on each form-widget init — including when a nested repeater adds an item — which broke manually-opened sections and stalled repeater "Add item" clicks. Owning the behaviour avoids that entirely, so collapsible sections work correctly even with repeater fields nested inside them.
+> **Note:** Collapsible behaviour is handled by this fork via the `data-block-collapsible` attribute, bootstrapped inline in the block widget partial (`formwidgets/blocks/partials/_block.php`), independent of WinterCMS's core collapsible-section JS. This is deliberate: core re-collapses and re-binds every section on each form-widget init — including when a nested repeater adds an item — which broke manually-opened sections and stalled repeater "Add item" clicks. Owning the behaviour avoids that entirely, so collapsible sections work correctly even with repeater fields nested inside them.
 
 ---
 
