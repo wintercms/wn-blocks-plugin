@@ -171,13 +171,13 @@
             });
         }
 
-        // Show/hide the paste button on every block item based on clipboard state.
-        // Also checks that the block type in the clipboard is available in the same widget.
+        // Show/hide paste buttons based on clipboard state and widget availability.
+        // Handles both the per-item paste button and the append button in the add-item row.
         function updatePasteButtons() {
             var cb = getClipboard();
-            document.querySelectorAll('[data-block-paste]').forEach(function (btn) {
+            var selectors = '[data-block-paste], [data-block-paste-append]';
+            document.querySelectorAll(selectors).forEach(function (btn) {
                 if (!cb || !cb.group) { btn.style.display = 'none'; return; }
-                // Find the palette template for this widget and check the block type exists.
                 var fieldBlocks = btn.closest('.field-blocks');
                 var tmpl = fieldBlocks && fieldBlocks.querySelector('[data-group-palette-template]');
                 var available = tmpl && (tmpl.textContent || tmpl.innerHTML)
@@ -220,6 +220,24 @@
             updatePasteButtons();
             var removeBtn = li.querySelector('[data-repeater-remove]');
             if (removeBtn) { removeBtn.click(); }
+        });
+
+        // Paste-append button in the add-item row — appends the copied block at the end.
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-block-paste-append]');
+            if (!btn) { return; }
+            e.preventDefault();
+            e.stopPropagation();
+            var cb = getClipboard();
+            if (!cb || !cb.group) { return; }
+            var fieldBlocks = btn.closest('.field-blocks');
+            var handler = findAddHandler(fieldBlocks, cb.group);
+            if (!handler) { return; }
+            // No afterLi — the MutationObserver will fill the block where onAddItem appends it.
+            window.__pendingPaste = { fields: cb.fields, afterLi: null };
+            if (typeof $ !== 'undefined') {
+                $(fieldBlocks).request(handler, { data: { _repeater_group: cb.group } });
+            }
         });
 
         // Paste button on each block item — inserts the copied block immediately after.

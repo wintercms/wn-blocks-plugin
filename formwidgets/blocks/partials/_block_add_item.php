@@ -11,5 +11,12 @@
             data-load-indicator>
             <?= e(trans($prompt)) ?>
         </a>
+        <a
+            href="javascript:;"
+            class="wn-icon-paste"
+            data-block-paste-append
+            style="display:none;margin-left:12px">
+            Paste block
+        </a>
     </li>
 <?php endif ?>
