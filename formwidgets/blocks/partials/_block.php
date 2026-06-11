@@ -333,25 +333,33 @@
             grid.insertBefore(item, grid.firstChild);
         }
 
-        // Click on the injected palette paste entry. Rather than re-implement the
-        // add request, set the pending fields and click the real block-add link in
-        // the same popover grid — that reuses core's proven add flow (correct form
-        // context, load indicator, and the empty-add-item cleanup). The observer
-        // then fills the new block from the clipboard.
+        // Click on the injected palette paste entry. Set the pending fields, then
+        // fire the AJAX request on the real block-add link in the same popover grid
+        // — using $(link).request() (not a synthetic DOM click, which doesn't
+        // reliably trigger the handler). That link already carries the onAddItem
+        // handler, the _repeater_group data, and the form context, so this reuses
+        // core's proven add flow; the observer then fills the new block.
         document.addEventListener('click', function (e) {
             var a = e.target.closest('[data-block-paste-palette]');
             if (!a) { return; }
             e.preventDefault();
             e.stopPropagation();
             var cb = getClipboard();
-            if (!cb || !cb.group) { return; }
+            if (!cb || !cb.group || typeof $ === 'undefined') { return; }
             var grid = a.closest('.blocks-group-grid');
             var addLink = grid && grid.querySelector(
                 'a[data-block-code="' + cb.group + '"][data-repeater-add]'
             );
             if (!addLink) { return; }
             window.__pendingPaste = { fields: cb.fields, afterLi: null };
-            addLink.click();
+            $(window).one('ajaxUpdateComplete', function () {
+                cleanupAddItems(window.__activeBlocksWidget);
+            });
+            // Use the link's own handler + form context (it lives in the popover,
+            // outside the form, so its data('request-form') is what makes it work).
+            $(addLink).request(addLink.getAttribute('data-request'), {
+                data: { _repeater_group: cb.group }
+            });
         });
 
         // Paste button on each block item — inserts the copied block immediately
