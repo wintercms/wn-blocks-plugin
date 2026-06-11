@@ -333,18 +333,25 @@
             grid.insertBefore(item, grid.firstChild);
         }
 
-        // Click on the injected palette paste entry — append into the active widget.
+        // Click on the injected palette paste entry. Rather than re-implement the
+        // add request, set the pending fields and click the real block-add link in
+        // the same popover grid — that reuses core's proven add flow (correct form
+        // context, load indicator, and the empty-add-item cleanup). The observer
+        // then fills the new block from the clipboard.
         document.addEventListener('click', function (e) {
             var a = e.target.closest('[data-block-paste-palette]');
             if (!a) { return; }
             e.preventDefault();
             e.stopPropagation();
             var cb = getClipboard();
-            var fieldBlocks = window.__activeBlocksWidget;
-            if (!cb || !cb.group || !fieldBlocks) { return; }
-            // No afterLi — append at the end. The popover closes itself (its own
-            // delegated 'click a' handler).
-            requestAdd(fieldBlocks, cb.group, cb.fields, null);
+            if (!cb || !cb.group) { return; }
+            var grid = a.closest('.blocks-group-grid');
+            var addLink = grid && grid.querySelector(
+                'a[data-block-code="' + cb.group + '"][data-repeater-add]'
+            );
+            if (!addLink) { return; }
+            window.__pendingPaste = { fields: cb.fields, afterLi: null };
+            addLink.click();
         });
 
         // Paste button on each block item — inserts the copied block immediately
