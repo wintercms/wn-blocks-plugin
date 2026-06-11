@@ -13,10 +13,9 @@
         </a>
         <a
             href="javascript:;"
-            class="wn-icon-paste"
             data-block-paste-append
-            style="display:none;margin-left:12px">
-            Paste block
+            style="display:none;margin-left:14px;font-size:13px">
+            <i class="icon-paste"></i> Paste block
         </a>
     </li>
 <?php endif ?>

@@ -190,6 +190,17 @@
             });
         }
 
+        // Is the given block code offered by this widget's palette?
+        // Returns true if we can't tell (fail open) so a paste option is never
+        // hidden by a markup quirk; the paste action itself no-ops on a bad type.
+        function blockTypeAvailable(fieldBlocks, group) {
+            var tmpl = fieldBlocks && fieldBlocks.querySelector('[data-group-palette-template]');
+            if (!tmpl) { return true; }
+            var text = tmpl.textContent || tmpl.innerHTML || '';
+            if (text.indexOf('data-block-code=') === -1) { return true; }
+            return text.indexOf('data-block-code="' + group + '"') !== -1;
+        }
+
         // Show/hide paste buttons based on clipboard state and widget availability.
         // Handles both the per-item paste button and the append button in the add-item row.
         function updatePasteButtons() {
@@ -198,10 +209,7 @@
             document.querySelectorAll(selectors).forEach(function (btn) {
                 if (!cb || !cb.group) { btn.style.display = 'none'; return; }
                 var fieldBlocks = btn.closest('.field-blocks');
-                var tmpl = fieldBlocks && fieldBlocks.querySelector('[data-group-palette-template]');
-                var available = tmpl && (tmpl.textContent || tmpl.innerHTML)
-                    .indexOf('data-block-code="' + cb.group + '"') !== -1;
-                btn.style.display = available ? '' : 'none';
+                btn.style.display = blockTypeAvailable(fieldBlocks, cb.group) ? '' : 'none';
             });
         }
 
