@@ -227,6 +227,30 @@
             return fieldBlocks ? fieldBlocks.getAttribute('data-add-handler') : null;
         }
 
+        // onAddItem returns an empty add-item plus a fresh one; the core popover
+        // flow removes the empty leftovers afterwards, but our direct requests
+        // bypass that — so replicate the cleanup ourselves to avoid stray
+        // "Add new item" buttons piling up.
+        function cleanupAddItems(fieldBlocks) {
+            if (typeof $ === 'undefined' || !fieldBlocks) { return; }
+            $(fieldBlocks).find('.field-repeater-items > .field-repeater-add-item')
+                .each(function () {
+                    if (this.children.length === 0) { $(this).remove(); }
+                });
+        }
+
+        // Fire onAddItem on a widget, with the empty-add-item cleanup applied once
+        // the AJAX update has been applied.
+        function requestAdd(fieldBlocks, group, fields, afterLi) {
+            var handler = findAddHandler(fieldBlocks);
+            if (!handler || typeof $ === 'undefined') { return; }
+            window.__pendingPaste = { fields: fields, afterLi: afterLi || null };
+            $(window).one('ajaxUpdateComplete', function () {
+                cleanupAddItems(fieldBlocks);
+            });
+            $(fieldBlocks).request(handler, { data: { _repeater_group: group } });
+        }
+
         // Collapse chevron (moved into the toolbar, so the core delegated handler
         // — bound to .repeater-item-collapse .repeater-item-collapse-one — no longer
         // fires on it). Toggle the item's collapsed state ourselves; the CSS handles
@@ -238,6 +262,18 @@
             e.stopPropagation();
             var item = btn.closest('.field-repeater-item');
             if (item) { item.classList.toggle('collapsed'); }
+        });
+
+        // Copy button: place the block's field values on the clipboard (non-destructive).
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-block-copy]');
+            if (!btn) { return; }
+            e.preventDefault();
+            e.stopPropagation();
+            var li = btn.closest('.field-block-item');
+            if (!li) { return; }
+            ssSet(CLIPBOARD_KEY, JSON.stringify(serializeBlockItem(li)));
+            updatePasteButtons();
         });
 
         // Duplicate button: clone this block in place (insert a copy right after it)
@@ -253,13 +289,7 @@
             if (!data.group) { return; }
             ssSet(CLIPBOARD_KEY, JSON.stringify(data));
             updatePasteButtons();
-            var fieldBlocks = li.closest('.field-blocks');
-            var handler = findAddHandler(fieldBlocks);
-            if (!handler) { return; }
-            window.__pendingPaste = { fields: data.fields, afterLi: li };
-            if (typeof $ !== 'undefined') {
-                $(fieldBlocks).request(handler, { data: { _repeater_group: data.group } });
-            }
+            requestAdd(li.closest('.field-blocks'), data.group, data.fields, li);
         });
 
         // Cut button: copy then trigger the existing remove button (with confirm).
@@ -312,19 +342,13 @@
             var cb = getClipboard();
             var fieldBlocks = window.__activeBlocksWidget;
             if (!cb || !cb.group || !fieldBlocks) { return; }
-            var handler = findAddHandler(fieldBlocks);
-            if (!handler) { return; }
-            // No afterLi — the MutationObserver fills the block where onAddItem appends it.
-            // The popover closes itself (its own delegated 'click a' handler).
-            window.__pendingPaste = { fields: cb.fields, afterLi: null };
-            if (typeof $ !== 'undefined') {
-                $(fieldBlocks).request(handler, { data: { _repeater_group: cb.group } });
-            }
+            // No afterLi — append at the end. The popover closes itself (its own
+            // delegated 'click a' handler).
+            requestAdd(fieldBlocks, cb.group, cb.fields, null);
         });
 
-        // Paste button on each block item — inserts the copied block immediately after.
-        // Reads the AJAX handler name from the palette template (no popover needed),
-        // fires onAddItem directly, then the MutationObserver moves the new <li> into place.
+        // Paste button on each block item — inserts the copied block immediately
+        // after it. Fires onAddItem; the MutationObserver moves the new <li> into place.
         document.addEventListener('click', function (e) {
             var btn = e.target.closest('[data-block-paste]');
             if (!btn || !btn.closest('.field-block-item')) { return; }
@@ -333,13 +357,7 @@
             var cb = getClipboard();
             if (!cb || !cb.group) { return; }
             var li = btn.closest('.field-block-item');
-            var fieldBlocks = li.closest('.field-blocks');
-            var handler = findAddHandler(fieldBlocks);
-            if (!handler) { return; }
-            window.__pendingPaste = { fields: cb.fields, afterLi: li };
-            if (typeof $ !== 'undefined') {
-                $(fieldBlocks).request(handler, { data: { _repeater_group: cb.group } });
-            }
+            requestAdd(li.closest('.field-blocks'), cb.group, cb.fields, li);
         });
 
         // --- collapsible sections ------------------------------------------
@@ -446,6 +464,8 @@
             applyRecent();
             applyPalettePaste();
             updatePasteButtons();
+            // Self-heal any empty "add new item" rows left by direct add requests.
+            document.querySelectorAll('.field-blocks').forEach(cleanupAddItems);
         }
 
         runAll();

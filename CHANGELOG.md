@@ -32,14 +32,15 @@
 ### Editor UX
 - **Recently used blocks** are pinned to the top of the "add block" palette
   (tracked in `localStorage`, most-recent first).
-- **Cut / Paste / Duplicate blocks** — each block has one horizontal toolbar
-  (collapse, cut, paste, duplicate, config, delete). Cut/duplicate place the
-  block's field values on the clipboard (`sessionStorage`); paste inserts after
-  a block, or appends via a "Paste block" entry at the top of the *+ Add New
-  Item* palette (for empty widgets). Duplicate also clones in place. Paste
-  affordances appear only where
-  the copied block type is offered (respects `allow`/`ignore`/`tags`) and
-  survive navigation within the same browser tab.
+- **Copy / Cut / Paste / Duplicate blocks** — each block has one horizontal
+  toolbar (collapse, copy, cut, paste, duplicate, config, delete). Copy/cut/
+  duplicate place the block's field values on the clipboard (`sessionStorage`);
+  paste inserts after a block, or appends via a "Paste block" entry at the top
+  of the *+ Add New Item* palette (for empty widgets). Duplicate also clones in
+  place. Paste affordances appear only where the copied block type is offered
+  (respects `allow`/`ignore`/`tags`) and survive navigation within the same
+  browser tab. Direct add/paste/duplicate requests run the same empty-add-item
+  cleanup as the core popover flow, so "Add new item" rows no longer pile up.
 
 ### Tests
 - `BlockManagerTest`: include merging, block-overrides-include precedence,

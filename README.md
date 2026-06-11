@@ -296,9 +296,10 @@ When adding a block from the palette, the blocks you use most recently are pinne
 ## Cut, paste and duplicate blocks
 
 Every block has a single horizontal toolbar (top-right) with, in order:
-**collapse**, **cut**, **paste**, **duplicate**, *(config, if the block has an
-inspector)* and **delete**.
+**collapse**, **copy**, **cut**, **paste**, **duplicate**, *(config, if the
+block has an inspector)* and **delete**.
 
+- **Copy** — places the block's field values on the clipboard (non-destructive).
 - **Cut** — places the block's field values on the clipboard, then removes it (with the usual confirmation prompt).
 - **Paste** — once the clipboard holds a block, a per-block paste icon inserts the copied block immediately **after** that block. A **Paste block** entry also appears at the top of the "Add Block" palette (the popover opened by *+ Add New Item*), which appends the copied block — handy for empty widgets.
 - **Duplicate** — clones the block in place (inserts a filled copy right after it) and also places it on the clipboard, so you can immediately paste the same block into another widget.

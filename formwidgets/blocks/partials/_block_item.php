@@ -24,6 +24,9 @@ $itemIcon = $this->getGroupIcon($groupCode);
         <?php endif ?>
 
         <?php if (!$this->previewMode): ?>
+            <button type="button" class="block-item-action" aria-label="Copy block" title="Copy" data-block-copy>
+                <i class="icon-copy"></i>
+            </button>
             <button type="button" class="block-item-action" aria-label="Cut block" title="Cut" data-block-cut>
                 <i class="icon-scissors"></i>
             </button>
@@ -31,7 +34,7 @@ $itemIcon = $this->getGroupIcon($groupCode);
                 <i class="icon-paste"></i>
             </button>
             <button type="button" class="block-item-action" aria-label="Duplicate block" title="Duplicate" data-block-duplicate>
-                <i class="icon-copy"></i>
+                <i class="icon-clone"></i>
             </button>
         <?php endif ?>
 
