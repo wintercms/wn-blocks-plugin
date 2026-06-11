@@ -11,16 +11,20 @@ $itemIcon = $this->getGroupIcon($groupCode);
 >
 
     <?php if (!$this->previewMode) : ?>
-        <div class="repeater-item-remove">
-            <button type="button" class="close" aria-label="Copy block" title="Copy" data-block-copy>
-                <i class="icon-copy" style="font-size:13px;opacity:.7"></i>
+        <div class="repeater-item-remove" style="display:flex;align-items:center;gap:2px">
+            <button type="button" class="close" aria-label="Copy block" title="Copy" data-block-copy style="float:none;font-size:13px;opacity:.7">
+                <i class="icon-copy"></i>
             </button>
-            <button type="button" class="close" aria-label="Cut block" title="Cut" data-block-cut>
-                <i class="icon-scissors" style="font-size:13px;opacity:.7"></i>
+            <button type="button" class="close" aria-label="Cut block" title="Cut" data-block-cut style="float:none;font-size:13px;opacity:.7">
+                <i class="icon-scissors"></i>
+            </button>
+            <button type="button" class="close" aria-label="Paste after this block" title="Paste after" data-block-paste style="float:none;font-size:13px;opacity:.7;display:none">
+                <i class="icon-paste"></i>
             </button>
             <button
                 type="button"
                 class="close"
+                style="float:none"
                 aria-label="Remove"
                 data-repeater-remove
                 data-request="<?= $this->getEventHandler('onRemoveItem') ?>"

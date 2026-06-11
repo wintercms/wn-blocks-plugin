@@ -171,6 +171,33 @@
             });
         }
 
+        // Show/hide the paste button on every block item based on clipboard state.
+        // Also checks that the block type in the clipboard is available in the same widget.
+        function updatePasteButtons() {
+            var cb = getClipboard();
+            document.querySelectorAll('[data-block-paste]').forEach(function (btn) {
+                if (!cb || !cb.group) { btn.style.display = 'none'; return; }
+                // Find the palette template for this widget and check the block type exists.
+                var fieldBlocks = btn.closest('.field-blocks');
+                var tmpl = fieldBlocks && fieldBlocks.querySelector('[data-group-palette-template]');
+                var available = tmpl && (tmpl.textContent || tmpl.innerHTML)
+                    .indexOf('data-block-code=”' + cb.group + '”') !== -1;
+                btn.style.display = available ? '' : 'none';
+            });
+        }
+
+        // Find the onAddItem AJAX handler name for a given group code by reading the
+        // palette template embedded in the same .field-blocks widget.
+        function findAddHandler(fieldBlocks, groupCode) {
+            var tmpl = fieldBlocks && fieldBlocks.querySelector('[data-group-palette-template]');
+            if (!tmpl) { return null; }
+            // Parse the template text to extract data-request from the matching link.
+            var div = document.createElement('div');
+            div.innerHTML = tmpl.textContent || tmpl.innerHTML;
+            var link = div.querySelector('a[data-block-code=”' + groupCode + '”]');
+            return link ? link.getAttribute('data-request') : null;
+        }
+
         // Copy button
         document.addEventListener('click', function (e) {
             var btn = e.target.closest('[data-block-copy]');
@@ -179,6 +206,7 @@
             var li = btn.closest('.field-block-item');
             if (!li) { return; }
             ssSet(CLIPBOARD_KEY, JSON.stringify(serializeBlockItem(li)));
+            updatePasteButtons();
         });
 
         // Cut button: copy then trigger the existing remove button (with confirm).
@@ -189,56 +217,30 @@
             var li = btn.closest('.field-block-item');
             if (!li) { return; }
             ssSet(CLIPBOARD_KEY, JSON.stringify(serializeBlockItem(li)));
+            updatePasteButtons();
             var removeBtn = li.querySelector('[data-repeater-remove]');
             if (removeBtn) { removeBtn.click(); }
         });
 
-        // Paste button (injected into the palette by applyPasteItem below).
-        // Sets a pending-paste flag, then programmatically clicks the matching block's
-        // add-link so onAddItem runs normally. The MutationObserver detects the new <li>
-        // and fills its fields from the clipboard.
+        // Paste button on each block item — inserts the copied block immediately after.
+        // Reads the AJAX handler name from the palette template (no popover needed),
+        // fires onAddItem directly, then the MutationObserver moves the new <li> into place.
         document.addEventListener('click', function (e) {
-            var a = e.target.closest('[data-block-paste]');
-            if (!a) { return; }
+            var btn = e.target.closest('[data-block-paste]');
+            if (!btn || !btn.closest('.field-block-item')) { return; }
             e.preventDefault();
             e.stopPropagation();
             var cb = getClipboard();
             if (!cb || !cb.group) { return; }
-            window.__pendingPaste = cb.fields;
-            var grid = a.closest('.blocks-group-grid');
-            var addLink = grid && grid.querySelector(
-                'a[data-block-code="' + cb.group + '"][data-repeater-add]'
-            );
-            if (addLink) { addLink.click(); }
+            var li = btn.closest('.field-block-item');
+            var fieldBlocks = li.closest('.field-blocks');
+            var handler = findAddHandler(fieldBlocks, cb.group);
+            if (!handler) { return; }
+            window.__pendingPaste = { fields: cb.fields, afterLi: li };
+            if (typeof $ !== 'undefined') {
+                $(fieldBlocks).request(handler, { data: { _repeater_group: cb.group } });
+            }
         });
-
-        // Inject a "Paste block" item at the top of the palette when clipboard has data
-        // and the block type is available in this widget's palette.
-        function applyPasteItem() {
-            document.querySelectorAll('.blocks-group-grid').forEach(function (grid) {
-                var existing = grid.querySelector('[data-block-paste]');
-                if (existing) { existing.closest('.blocks-group-item').remove(); }
-
-                var cb = getClipboard();
-                if (!cb || !cb.group) { return; }
-
-                var matchLink = grid.querySelector(
-                    'a[data-block-code="' + cb.group + '"][data-repeater-add]'
-                );
-                if (!matchLink) { return; }
-
-                var item = document.createElement('div');
-                item.className = 'blocks-group-item';
-                item.innerHTML =
-                    '<a href="javascript:;" data-block-paste data-block-code="' + cb.group + '">' +
-                    '<i class="icon-paste"></i>' +
-                    '<div>' +
-                    '<span class="title">Paste block</span>' +
-                    '<span class="description">Paste copied “' + cb.group + '” block</span>' +
-                    '</div></a>';
-                grid.insertBefore(item, grid.firstChild);
-            });
-        }
 
         // --- collapsible sections ------------------------------------------
         function followingFields(section) {
@@ -333,21 +335,28 @@
         }
 
         // --- shared init + observer ----------------------------------------
-        function runAll() { initSections(); applyRecent(); applyPasteItem(); }
+        function runAll() { initSections(); applyRecent(); updatePasteButtons(); }
 
         runAll();
 
         var scheduled = false;
         var observer = new MutationObserver(function (mutations) {
-            // Fill clipboard fields into a newly added block item immediately,
-            // before the debounced runAll() fires, so inputs are ready.
+            // When a paste is pending, find the newly added block <li>, move it after
+            // the source block, and fill its fields — all before the debounced runAll fires.
             if (window.__pendingPaste) {
+                var pending = window.__pendingPaste;
                 for (var i = 0; i < mutations.length; i++) {
                     mutations[i].addedNodes.forEach(function (node) {
                         if (node.nodeType === 1 && node.classList &&
                                 node.classList.contains('field-block-item')) {
-                            fillFromClipboard(node, window.__pendingPaste);
                             window.__pendingPaste = null;
+                            // Move the new item to immediately after the source item.
+                            if (pending.afterLi && pending.afterLi.parentNode) {
+                                pending.afterLi.parentNode.insertBefore(
+                                    node, pending.afterLi.nextSibling
+                                );
+                            }
+                            fillFromClipboard(node, pending.fields);
                         }
                     });
                 }
