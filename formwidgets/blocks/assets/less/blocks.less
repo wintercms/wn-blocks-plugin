@@ -5,13 +5,19 @@
 .field-blocks {
     padding-top: 5px;
 
-    // Per-block toolbar: copy / cut / paste / remove, aligned horizontally.
+    // Per-block toolbar holding every item control in one horizontal row:
+    // collapse, cut, paste, duplicate, config, delete. Overrides the core
+    // fixed 20px width on .repeater-item-remove so the icons never overflow.
     // Mirrored as an inline-injected <style> in the block widget partial so the
     // toolbar still renders correctly when the compiled CSS is stale.
-    .block-item-toolbar {
+    .field-block-item > .repeater-item-remove.block-item-toolbar {
+        width: auto;
+        height: auto;
         display: inline-flex;
         align-items: center;
         gap: 1px;
+        top: 4px;
+        right: 5px;
     }
 
     .block-item-action {
@@ -26,38 +32,62 @@
         border: 0;
         background: none;
         cursor: pointer;
-        color: #95a5a6;
-        opacity: .7;
+        color: @text-color;
+        opacity: .6;
         font-size: 13px;
         line-height: 1;
         border-radius: 3px;
         transition: background .15s, color .15s, opacity .15s;
 
-        &:hover {
+        > i { line-height: 1; }
+
+        &:hover,
+        &:focus {
             opacity: 1;
             background: rgba(0, 0, 0, .06);
-            color: #34495e;
+            color: @text-color;
+            text-decoration: none;
         }
 
         &.block-item-action-remove:hover {
             color: #cc3300;
         }
+
+        // Keep the collapse chevron's rotate-when-collapsed behaviour.
+        &.repeater-item-collapse-one {
+            transition: transform .3s, background .15s, opacity .15s;
+        }
     }
 
-    // "Paste block" row shown under the Add button when the clipboard holds a
+    // Rotate the collapse chevron when the item is collapsed (it now lives in
+    // the toolbar rather than the original .repeater-item-collapse wrapper).
+    .field-block-item.collapsed > .repeater-item-remove .repeater-item-collapse-one {
+        .transform(rotate(180deg));
+    }
+
+    // "Paste block" affordance under the Add button when the clipboard holds a
     // compatible block. Its own list row so it is never clipped by the add item.
+    // Rendered as a neutral (primary) icon button, not a blue text link.
     .field-block-paste-row {
         list-style: none;
         text-align: center;
-        padding: 6px 0;
+        padding: 4px 0;
 
         a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
             font-size: 13px;
-            color: @link-color;
+            color: @text-color;
+            opacity: .7;
             text-decoration: none;
 
-            &:hover {
-                text-decoration: underline;
+            &:hover,
+            &:focus {
+                opacity: 1;
+                color: @text-color;
+                text-decoration: none;
             }
         }
     }

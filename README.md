@@ -293,15 +293,17 @@ When adding a block from the palette, the blocks you use most recently are pinne
 
 ---
 
-## Copy, cut and paste blocks
+## Cut, paste and duplicate blocks
 
-Each block has **Copy** and **Cut** icon buttons next to the remove (×) button.
+Every block has a single horizontal toolbar (top-right) with, in order:
+**collapse**, **cut**, **paste**, **duplicate**, *(config, if the block has an
+inspector)* and **delete**.
 
-- **Copy** — serializes the block's current field values to `sessionStorage`.
-- **Cut** — copies then immediately triggers the remove button (with the usual confirmation prompt).
-- **Paste** — when the clipboard holds a block, a **Paste block** entry appears at the top of the "add block" palette. Clicking it adds a fresh block of that type and fills all its fields with the copied values.
+- **Cut** — places the block's field values on the clipboard, then removes it (with the usual confirmation prompt).
+- **Paste** — appears once the clipboard holds a block. On each block it inserts the copied block immediately **after** that block; a **Paste block** affordance also appears beneath the "Add Block" button to append into an empty widget.
+- **Duplicate** — clones the block in place (inserts a filled copy right after it) and also places it on the clipboard, so you can immediately paste the same block into another widget.
 
-Paste respects the widget's `allow` / `ignore` / `tags` constraints: if the copied block type is not available in the target widget's palette, the Paste entry is not shown. The clipboard persists for the duration of the browser session (`sessionStorage`), so you can paste across different pages in the same tab.
+Paste/duplicate respect the widget's `allow` / `ignore` / `tags` constraints: the paste affordance only appears where the copied block type is actually offered. The clipboard persists for the duration of the browser session (`sessionStorage`), so you can paste across different pages in the same tab.
 
 > **Note on nested blocks:** Field values — including nested `blocks` fields, which store their content as JSON — are captured and restored correctly. Complex editor widgets (e.g. rich-text, code editors) may require an extra click to refresh their UI after paste, as those widgets listen for native `change` events.
 

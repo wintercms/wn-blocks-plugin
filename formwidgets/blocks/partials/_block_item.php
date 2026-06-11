@@ -10,17 +10,48 @@ $itemIcon = $this->getGroupIcon($groupCode);
     <?php if ($mode === 'grid'): ?>style="min-height: <?= $rowHeight ?>px"<?php endif ?>
 >
 
-    <?php if (!$this->previewMode) : ?>
-        <div class="repeater-item-remove block-item-toolbar">
-            <button type="button" class="block-item-action" aria-label="Copy block" title="Copy" data-block-copy>
-                <i class="icon-copy"></i>
-            </button>
+    <?php
+    /*
+     * All item controls live in one horizontal toolbar so they never overflow.
+     * Order: collapse, cut, paste, duplicate, [config], delete.
+     */
+    ?>
+    <div class="repeater-item-remove block-item-toolbar">
+        <?php if (count($widget->getFields()) && $mode !== 'grid'): ?>
+            <a href="javascript:;" class="repeater-item-collapse-one block-item-action" aria-label="Collapse" title="Collapse">
+                <i class="icon-chevron-up"></i>
+            </a>
+        <?php endif ?>
+
+        <?php if (!$this->previewMode): ?>
             <button type="button" class="block-item-action" aria-label="Cut block" title="Cut" data-block-cut>
                 <i class="icon-scissors"></i>
             </button>
             <button type="button" class="block-item-action" aria-label="Paste after this block" title="Paste after" data-block-paste style="display:none">
                 <i class="icon-paste"></i>
             </button>
+            <button type="button" class="block-item-action" aria-label="Duplicate block" title="Duplicate" data-block-duplicate>
+                <i class="icon-copy"></i>
+            </button>
+        <?php endif ?>
+
+        <?php if ($this->hasInspectorConfig($groupCode)): ?>
+            <a
+                href="javascript:;"
+                class="block-config block-item-action"
+                data-inspectable
+                data-inspector-title="<?= e(trans($itemTitle)) ?>"
+                data-inspector-description="<?= e(trans($itemDescription)) ?>"
+                data-inspector-config="<?= e($this->getInspectorConfig($groupCode)) ?>"
+                data-inspector-offset-y="-5"
+                data-inspector-offset-x="-15"
+            >
+                <i class="icon-cog"></i>
+                <input type="hidden" data-inspector-values name="<?= $widget->arrayName ?>[_config]" value="<?= e($groupConfig ?? '') ?>" />
+            </a>
+        <?php endif ?>
+
+        <?php if (!$this->previewMode): ?>
             <button
                 type="button"
                 class="block-item-action block-item-action-remove"
@@ -31,16 +62,8 @@ $itemIcon = $this->getGroupIcon($groupCode);
                 data-request-confirm="<?= e(trans('backend::lang.form.action_confirm')) ?>">
                 <i class="icon-times"></i>
             </button>
-        </div>
-    <?php endif ?>
-
-    <?php if (count($widget->getFields()) && $mode !== 'grid'): ?>
-        <div class="repeater-item-collapse">
-            <a href="javascript:;" class="repeater-item-collapse-one">
-                <i class="icon-chevron-up"></i>
-            </a>
-        </div>
-    <?php endif ?>
+        <?php endif ?>
+    </div>
 
     <div class="repeater-item-collapsed-handle">&nbsp;</div>
 
@@ -52,22 +75,6 @@ $itemIcon = $this->getGroupIcon($groupCode);
 
         <input type="hidden" name="<?= $widget->arrayName ?>[_group]" value="<?= $groupCode ?>" />
     </div>
-
-    <?php if ($this->hasInspectorConfig($groupCode)): ?>
-        <a
-            href="javascript:;"
-            class="block-config"
-            data-inspectable
-            data-inspector-title="<?= e(trans($itemTitle)) ?>"
-            data-inspector-description="<?= e(trans($itemDescription)) ?>"
-            data-inspector-config="<?= e($this->getInspectorConfig($groupCode)) ?>"
-            data-inspector-offset-y="-5"
-            data-inspector-offset-x="-15"
-        >
-            <i class="icon-cog"></i>
-            <input type="hidden" data-inspector-values name="<?= $widget->arrayName ?>[_config]" value="<?= e($groupConfig ?? '') ?>" />
-        </a>
-    <?php endif ?>
 
     <div class="field-repeater-form"
          data-control="formwidget"

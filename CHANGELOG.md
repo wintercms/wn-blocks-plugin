@@ -32,11 +32,13 @@
 ### Editor UX
 - **Recently used blocks** are pinned to the top of the "add block" palette
   (tracked in `localStorage`, most-recent first).
-- **Copy / Cut / Paste blocks** — Copy and Cut icon buttons on each block
-  serialize its field values to `sessionStorage`. A Paste entry appears at the
-  top of the "add block" palette when the clipboard holds a block whose type is
-  available in the current widget (respects `allow`/`ignore`/`tags`). Paste
-  survives navigation within the same browser tab.
+- **Cut / Paste / Duplicate blocks** — each block has one horizontal toolbar
+  (collapse, cut, paste, duplicate, config, delete). Cut/duplicate place the
+  block's field values on the clipboard (`sessionStorage`); paste inserts after
+  a block, or appends via an affordance under the Add button (for empty
+  widgets). Duplicate also clones in place. Paste affordances appear only where
+  the copied block type is offered (respects `allow`/`ignore`/`tags`) and
+  survive navigation within the same browser tab.
 
 ### Tests
 - `BlockManagerTest`: include merging, block-overrides-include precedence,

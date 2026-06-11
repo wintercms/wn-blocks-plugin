@@ -117,21 +117,29 @@
         var CLIPBOARD_KEY = 'wnBlocksClipboard';
 
         // --- inject toolbar styles once ------------------------------------
-        // Kept here (rather than only in blocks.less) so the per-block copy/cut/
-        // paste/remove toolbar renders correctly even if the compiled CSS is stale.
+        // Kept here (rather than only in blocks.less) so the per-block toolbar
+        // (collapse / cut / paste / duplicate / config / delete) renders
+        // correctly even if the compiled CSS is stale.
         (function injectToolbarCss() {
             if (document.getElementById('wn-blocks-toolbar-css')) { return; }
             var css =
-                '.block-item-toolbar{display:inline-flex;align-items:center;gap:1px}' +
+                '.field-block-item>.repeater-item-remove.block-item-toolbar{width:auto;' +
+                'height:auto;display:inline-flex;align-items:center;gap:1px;top:4px;right:5px}' +
                 '.block-item-action{float:none;display:inline-flex;align-items:center;' +
                 'justify-content:center;width:22px;height:22px;padding:0;margin:0;border:0;' +
-                'background:none;cursor:pointer;color:#95a5a6;opacity:.7;font-size:13px;' +
+                'background:none;cursor:pointer;color:#333;opacity:.6;font-size:13px;' +
                 'line-height:1;border-radius:3px;transition:background .15s,color .15s,opacity .15s}' +
-                '.block-item-action:hover{opacity:1;background:rgba(0,0,0,.06);color:#34495e}' +
+                '.block-item-action>i{line-height:1}' +
+                '.block-item-action:hover,.block-item-action:focus{opacity:1;' +
+                'background:rgba(0,0,0,.06);color:#333;text-decoration:none}' +
                 '.block-item-action-remove:hover{color:#cc3300}' +
-                '.field-block-paste-row{list-style:none;text-align:center;padding:6px 0}' +
-                '.field-block-paste-row a{font-size:13px;color:#0072bc;text-decoration:none}' +
-                '.field-block-paste-row a:hover{text-decoration:underline}';
+                '.field-block-item.collapsed>.repeater-item-remove .repeater-item-collapse-one' +
+                '{transform:rotate(180deg)}' +
+                '.field-block-paste-row{list-style:none;text-align:center;padding:4px 0}' +
+                '.field-block-paste-row a{display:inline-flex;align-items:center;' +
+                'justify-content:center;gap:4px;font-size:13px;color:#333;opacity:.7;' +
+                'text-decoration:none}' +
+                '.field-block-paste-row a:hover{opacity:1;text-decoration:none}';
             var style = document.createElement('style');
             style.id = 'wn-blocks-toolbar-css';
             style.textContent = css;
@@ -230,15 +238,39 @@
             return fieldBlocks ? fieldBlocks.getAttribute('data-add-handler') : null;
         }
 
-        // Copy button
+        // Collapse chevron (moved into the toolbar, so the core delegated handler
+        // — bound to .repeater-item-collapse .repeater-item-collapse-one — no longer
+        // fires on it). Toggle the item's collapsed state ourselves; the CSS handles
+        // the rest. Document-level delegation also covers dynamically added blocks.
         document.addEventListener('click', function (e) {
-            var btn = e.target.closest('[data-block-copy]');
+            var btn = e.target.closest('.block-item-toolbar .repeater-item-collapse-one');
             if (!btn) { return; }
+            e.preventDefault();
+            e.stopPropagation();
+            var item = btn.closest('.field-repeater-item');
+            if (item) { item.classList.toggle('collapsed'); }
+        });
+
+        // Duplicate button: clone this block in place (insert a copy right after it)
+        // and also place it on the clipboard so it can be pasted into other widgets.
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-block-duplicate]');
+            if (!btn) { return; }
+            e.preventDefault();
             e.stopPropagation();
             var li = btn.closest('.field-block-item');
             if (!li) { return; }
-            ssSet(CLIPBOARD_KEY, JSON.stringify(serializeBlockItem(li)));
+            var data = serializeBlockItem(li);
+            if (!data.group) { return; }
+            ssSet(CLIPBOARD_KEY, JSON.stringify(data));
             updatePasteButtons();
+            var fieldBlocks = li.closest('.field-blocks');
+            var handler = findAddHandler(fieldBlocks);
+            if (!handler) { return; }
+            window.__pendingPaste = { fields: data.fields, afterLi: li };
+            if (typeof $ !== 'undefined') {
+                $(fieldBlocks).request(handler, { data: { _repeater_group: data.group } });
+            }
         });
 
         // Cut button: copy then trigger the existing remove button (with confirm).
