@@ -1,9 +1,6 @@
 # Changelog
 
-This is a fork of [wintercms/wn-blocks-plugin](https://github.com/wintercms/wn-blocks-plugin).
-Entries below describe changes that diverge from upstream.
-
-## Fork additions
+## Unreleased
 
 ### Collapsible sections
 - `.block` `type: section` fields support a `collapsible: true` shorthand, with

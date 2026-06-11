@@ -8,7 +8,7 @@ Provides a "block based" content management experience in Winter CMS
 
 >**NOTE:** This plugin is still in development and is likely to undergo changes. Do not use in production environments without using a version constraint in your composer.json file and carefully monitoring for breaking changes.
 
-> **Fork note:** This is a fork of [wintercms/wn-blocks-plugin](https://github.com/wintercms/wn-blocks-plugin) that adds **collapsible sections** (with persisted state), **tabs/secondaryTabs** support, **shared field includes** (with nested includes), and **recently used blocks** in the palette. See [Collapsible Sections](#collapsible-sections), [Tabs](#tabs), [Including shared field definitions](#including-shared-field-definitions), and [Recently used blocks](#recently-used-blocks) below. Full list in [CHANGELOG.md](CHANGELOG.md).
+> **Block definition features:** **collapsible sections** (with persisted state), **tabs/secondaryTabs** support, **shared field includes** (with nested includes), and **recently used blocks** in the palette. See [Collapsible Sections](#collapsible-sections), [Tabs](#tabs), [Including shared field definitions](#including-shared-field-definitions), and [Recently used blocks](#recently-used-blocks) below. Full list in [CHANGELOG.md](CHANGELOG.md).
 
 ## Installation
 
@@ -171,7 +171,7 @@ fields:
 
 When `collapsible: true` is set, the section header becomes a click target. Sections start collapsed by default; set `collapsed: false` to have the section open on first load. Each section's open/closed state is **remembered across page reloads** (stored in `localStorage`, keyed by field name), so the editor returns to the state you left it in.
 
-> **Note:** Collapsible behaviour is handled by this fork via the `data-block-collapsible` attribute, bootstrapped inline in the block widget partial (`formwidgets/blocks/partials/_block.php`), independent of WinterCMS's core collapsible-section JS. This is deliberate: core re-collapses and re-binds every section on each form-widget init — including when a nested repeater adds an item — which broke manually-opened sections and stalled repeater "Add item" clicks. Owning the behaviour avoids that entirely, so collapsible sections work correctly even with repeater fields nested inside them.
+> **Note:** Collapsible behaviour is handled via the `data-block-collapsible` attribute, bootstrapped inline in the block widget partial (`formwidgets/blocks/partials/_block.php`), independent of WinterCMS's core collapsible-section JS. This is deliberate: core re-collapses and re-binds every section on each form-widget init — including when a nested repeater adds an item — which broke manually-opened sections and stalled repeater "Add item" clicks. Owning the behaviour avoids that entirely, so collapsible sections work correctly even with repeater fields nested inside them.
 
 ---
 
