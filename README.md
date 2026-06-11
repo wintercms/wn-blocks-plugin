@@ -8,6 +8,8 @@ Provides a "block based" content management experience in Winter CMS
 
 >**NOTE:** This plugin is still in development and is likely to undergo changes. Do not use in production environments without using a version constraint in your composer.json file and carefully monitoring for breaking changes.
 
+> **Fork note:** This is a fork of [wintercms/wn-blocks-plugin](https://github.com/wintercms/wn-blocks-plugin) that adds **collapsible sections** and **tabs/secondaryTabs** support in block definitions. See [Collapsible Sections](#collapsible-sections) and [Tabs](#tabs) below.
+
 ## Installation
 
 This plugin is available for installation via [Composer](http://getcomposer.org/).
@@ -143,6 +145,81 @@ config:
     {{ content }}
 </{{ config.size }}>
 ```
+
+## Collapsible Sections
+
+Block fields that use `type: section` can be made collapsible directly in the block YAML — no `containerAttributes` required.
+
+```yaml
+fields:
+    section_advanced:
+        label: Advanced settings
+        type: section
+        collapsible: true        # makes the section click-to-collapse
+        collapsed: true          # initial state: true = start collapsed (default), false = start open
+    some_field:
+        label: Some field
+        type: text
+```
+
+**Shorthand rules:**
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `collapsible` | bool | — | Set to `true` to enable the collapse toggle |
+| `collapsed` | bool | `true` | Initial state. `false` = section starts open |
+
+When `collapsible: true` is set, the section header becomes a click target. Sections start collapsed by default; set `collapsed: false` to have the section open on first load.
+
+> **Note:** `collapsed: false` requires the `collapsible.js` asset that is bundled with this fork. It runs after WinterCMS's core form JS (which collapses all collapsible sections) and re-opens any section marked `collapsed: false`.
+
+---
+
+## Tabs
+
+Block definitions can include `tabs` and/or `secondaryTabs` at the top level. These are passed through to the WinterCMS `Backend\Widgets\Form` widget exactly as they would be in a standard `fields.yaml` file.
+
+```yaml
+name: My Block
+description: A block with tabs
+icon: icon-th
+
+tabs:
+    cssClass: master-tabs
+    fields:
+        content:
+            label: Content
+            type: textarea
+            tab: Content
+
+        title:
+            label: Title
+            type: text
+            tab: Content
+
+        meta_title:
+            label: Meta title
+            type: text
+            tab: SEO
+
+        meta_description:
+            label: Meta description
+            type: textarea
+            tab: SEO
+
+secondaryTabs:
+    fields:
+        is_active:
+            label: Active
+            type: checkbox
+            tab: Settings
+==
+<div>{{ content }}</div>
+```
+
+Fields declared under `tabs` / `secondaryTabs` are placed in the tabbed area of the form widget. You can combine `tabs`, `secondaryTabs`, and the top-level `fields` array in the same block.
+
+---
 
 ## Using the `blocks` FormWidget
 
