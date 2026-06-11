@@ -1,17 +1,11 @@
 const mix = require('laravel-mix');
 
 /*
- * NOTE: there are two distinct blocks.js files — do not confuse or merge them:
- *
- *   assets/dist/js/blocks.js            (built here from assets/src/js/blocks.js)
- *     The FRONTEND Snowboard "actions" build. Loaded manually in the theme after
- *     Snowboard (see README "Actions").
- *
- *   formwidgets/blocks/assets/js/blocks.js  (hand-maintained, not built here)
- *     The BACKEND FormWidget behaviour (jQuery "fieldBlocks" plugin), served via
- *     addJs() in formwidgets/Blocks.php. This is the one the editor UI uses.
- *
- * They share a filename but target different runtimes.
+ * Two separate blocks.js files exist for different runtimes:
+ *   - assets/dist/js/blocks.js: frontend Snowboard "actions" build, compiled
+ *     here from assets/src/js/blocks.js.
+ *   - formwidgets/blocks/assets/js/blocks.js: backend FormWidget script (jQuery
+ *     "fieldBlocks"), maintained by hand and served via addJs() in Blocks.php.
  */
 mix
     .setPublicPath(__dirname)
