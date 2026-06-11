@@ -5,6 +5,8 @@
     <?= $maxItems ? 'data-max-items="'.$maxItems.'"' : '' ?>
     <?= $style ? 'data-style="'.$style.'"' : '' ?>
     data-mode="<?= $mode ?>"
+    data-add-handler="<?= $this->getEventHandler('onAddItem') ?>"
+    data-block-codes="<?= e(implode(',', array_keys($groupDefinitions))) ?>"
     <?php if ($mode === 'grid'): ?> data-columns="<?= $columns ?>" <?php endif ?>
     <?php if ($sortable) : ?>
     data-sortable="true"
@@ -193,15 +195,12 @@
             });
         }
 
-        // Is the given block code offered by this widget's palette?
-        // Returns true if we can't tell (fail open) so a paste option is never
-        // hidden by a markup quirk; the paste action itself no-ops on a bad type.
+        // Is the given block code offered by this widget? Reads the explicit
+        // data-block-codes list rendered server-side on the .field-blocks element.
         function blockTypeAvailable(fieldBlocks, group) {
-            var tmpl = fieldBlocks && fieldBlocks.querySelector('[data-group-palette-template]');
-            if (!tmpl) { return true; }
-            var text = tmpl.textContent || tmpl.innerHTML || '';
-            if (text.indexOf('data-block-code=') === -1) { return true; }
-            return text.indexOf('data-block-code="' + group + '"') !== -1;
+            if (!fieldBlocks) { return false; }
+            var list = fieldBlocks.getAttribute('data-block-codes') || '';
+            return list.split(',').indexOf(group) !== -1;
         }
 
         // Show/hide paste affordances based on clipboard state and widget availability.
@@ -226,16 +225,9 @@
             });
         }
 
-        // Find the onAddItem AJAX handler name for a given group code by reading the
-        // palette template embedded in the same .field-blocks widget.
-        function findAddHandler(fieldBlocks, groupCode) {
-            var tmpl = fieldBlocks && fieldBlocks.querySelector('[data-group-palette-template]');
-            if (!tmpl) { return null; }
-            // Parse the template text to extract data-request from the matching link.
-            var div = document.createElement('div');
-            div.innerHTML = tmpl.textContent || tmpl.innerHTML;
-            var link = div.querySelector('a[data-block-code="' + groupCode + '"]');
-            return link ? link.getAttribute('data-request') : null;
+        // The onAddItem AJAX handler name, rendered server-side on .field-blocks.
+        function findAddHandler(fieldBlocks) {
+            return fieldBlocks ? fieldBlocks.getAttribute('data-add-handler') : null;
         }
 
         // Copy button
@@ -271,7 +263,7 @@
             var cb = getClipboard();
             if (!cb || !cb.group) { return; }
             var fieldBlocks = btn.closest('.field-blocks');
-            var handler = findAddHandler(fieldBlocks, cb.group);
+            var handler = findAddHandler(fieldBlocks);
             if (!handler) { return; }
             // No afterLi — the MutationObserver will fill the block where onAddItem appends it.
             window.__pendingPaste = { fields: cb.fields, afterLi: null };
@@ -292,7 +284,7 @@
             if (!cb || !cb.group) { return; }
             var li = btn.closest('.field-block-item');
             var fieldBlocks = li.closest('.field-blocks');
-            var handler = findAddHandler(fieldBlocks, cb.group);
+            var handler = findAddHandler(fieldBlocks);
             if (!handler) { return; }
             window.__pendingPaste = { fields: cb.fields, afterLi: li };
             if (typeof $ !== 'undefined') {
