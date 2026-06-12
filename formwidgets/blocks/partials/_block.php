@@ -490,14 +490,16 @@
             initSections();
             applyRecent();
             applyPalettePaste();
-            updatePasteButtons();
-            // Self-heal any empty "add new item" rows left by direct add requests.
-            document.querySelectorAll('.field-blocks').forEach(cleanupAddItems);
         }
 
+        // Full init on first load — includes paste buttons and add-item cleanup
+        // which the observer only repeats when new DOM nodes actually appear.
         runAll();
+        updatePasteButtons();
+        document.querySelectorAll('.field-blocks').forEach(cleanupAddItems);
 
         var scheduled = false;
+        var pendingNewNodes = false;
         var observer = new MutationObserver(function (mutations) {
             // When a paste is pending, find the newly added block <li>, move it after
             // the source block, and fill its fields — all before the debounced runAll fires.
@@ -519,9 +521,27 @@
                     });
                 }
             }
+            // Track whether any element nodes were added in this batch.
+            // updatePasteButtons and cleanupAddItems are called explicitly by
+            // copy/cut/duplicate handlers; the observer only needs to run them
+            // when the DOM gains new elements (e.g. a block was added).
+            if (!pendingNewNodes) {
+                pendingNewNodes = mutations.some(function (m) { return m.addedNodes.length > 0; });
+            }
             if (scheduled) { return; }
             scheduled = true;
-            setTimeout(function () { scheduled = false; runAll(); }, 0);
+            setTimeout(function () {
+                scheduled = false;
+                var hadNewNodes = pendingNewNodes;
+                pendingNewNodes = false;
+                initSections();
+                applyRecent();
+                applyPalettePaste();
+                if (hadNewNodes) {
+                    updatePasteButtons();
+                    document.querySelectorAll('.field-blocks').forEach(cleanupAddItems);
+                }
+            }, 0);
         });
         function startObserving() {
             if (document.body) {
