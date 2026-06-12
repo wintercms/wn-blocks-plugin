@@ -110,7 +110,7 @@ For example, let's say you have a **Title** block which can display a heading ta
 
 **Example:**
 
-```
+```yaml
 name: Title
 description: Adds a title
 icon: icon-heading
