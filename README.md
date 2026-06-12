@@ -304,13 +304,6 @@ block has an inspector)* and **delete**.
 - **Paste after** — once the clipboard holds a block, a per-block paste icon inserts the copied block immediately **after** that block. A **Paste block** entry also appears at the top of the "Add Block" palette (the popover opened by *+ Add New Item*), which is handy for inserting into an empty widget or at the end of a list.
 - **Duplicate** — one-step clone: serialises the current block, saves it to the clipboard, and immediately inserts a filled copy right after it.
 
-**Duplicate vs. Paste after** — they look similar but serve different purposes:
-
-| | Source | Modifies clipboard? | Position |
-|---|---|---|---|
-| **Duplicate** | The block you click | Yes (overwrites) | Always right after that block |
-| **Paste after** | Whatever was last copied/cut/duplicated | No | Right after the block you click |
-
 Use **Duplicate** for a quick in-place clone. Use **Paste after** (or **Paste block** in the palette) when you want to insert a previously copied block at a specific position or into a different widget.
 
 Paste/duplicate respect the widget's `allow` / `ignore` / `tags` constraints: the paste affordances only appear where the copied block type is actually offered. The clipboard persists for the duration of the browser session (`sessionStorage`), so you can paste across different pages in the same tab.
