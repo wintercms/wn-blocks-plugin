@@ -203,6 +203,23 @@
                     el.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             });
+            refreshWidgets(li);
+        }
+
+        // Refresh complex editor widgets (richeditor/Froala, codeeditor/CodeMirror) after
+        // a paste fill. These widgets maintain their own internal state and do not re-read
+        // the underlying textarea on a native change event, so we call their own APIs.
+        // Data keys ('oc.richEditor', 'oc.codeEditor') are set by Winter's widget plugins.
+        function refreshWidgets(li) {
+            if (typeof $ === 'undefined') { return; }
+            $(li).find('textarea').each(function () {
+                var w = $(this).data('oc.richEditor');
+                if (w && w.editor && w.editor.html) { w.editor.html.set(this.value); }
+            });
+            $(li).find('[data-control]').each(function () {
+                var w = $(this).data('oc.codeEditor');
+                if (w) { w.setValue($(this).find('textarea').val() || ''); }
+            });
         }
 
         // Is the given block code offered by this widget? Reads the explicit
