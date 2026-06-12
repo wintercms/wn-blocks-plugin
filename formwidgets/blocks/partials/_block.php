@@ -57,9 +57,6 @@
                     <i class="icon-close"></i>
                 </button>
             </div>
-            <button type="button" class="btn btn-default btn-sm blocks-palette-paste-btn" style="display:none">
-                <i class="icon-paste"></i> Paste
-            </button>
         </div>
         <div class="blocks-group-no-results">
             No items found
@@ -145,9 +142,7 @@
                 '.field-block-item.has-paste>.repeater-item-remove.block-item-toolbar{opacity:.45!important}' +
                 '.field-block-item.has-paste.hover>.repeater-item-remove.block-item-toolbar,' +
                 '.field-block-item.has-paste.focus>.repeater-item-remove.block-item-toolbar{opacity:1!important}' +
-                '.blocks-group-search-container{display:flex;align-items:center;gap:8px}' +
-                '.blocks-group-search-container>div{flex:1;min-width:0}' +
-                '.blocks-palette-paste-btn{flex-shrink:0;white-space:nowrap}';
+                '';
             var style = document.createElement('style');
             style.id = 'wn-blocks-toolbar-css';
             style.textContent = css;
@@ -325,46 +320,46 @@
             if (add) { window.__activeBlocksWidget = add.closest('.field-blocks'); }
         });
 
-        // Show/hide the "Paste" button in the search bar of the Add-Item palette.
-        // The button lives in .blocks-group-search-container (outside the scrollpad)
-        // so it reliably receives clicks. fieldBlocks is captured when the palette
-        // opens (window.__activeBlocksWidget), not at click time.
+        // Inject a "Paste block" entry at the top of the Add-Item palette grid.
+        // Looks identical to real block items. Injected once per palette open;
+        // subsequent MutationObserver calls hit the early-exit guard (matching
+        // data-paste-group) and make no DOM changes, so the observer loop stops.
         function injectPalettePaste(grid) {
             var cb = getClipboard();
             var fieldBlocks = window.__activeBlocksWidget;
-
-            // Find the paste button that sits in the search bar of this palette.
-            var container = grid.closest('.blocks-group-items-container');
-            var searchContainer = container && container.previousElementSibling;
-            while (searchContainer && !searchContainer.classList.contains('blocks-group-search-container')) {
-                searchContainer = searchContainer.previousElementSibling;
-            }
-            var pasteBtn = searchContainer && searchContainer.querySelector('.blocks-palette-paste-btn');
-            if (!pasteBtn) { return; }
-
             var show = !!(cb && cb.group && blockTypeAvailable(fieldBlocks, cb.group));
-            pasteBtn.style.display = show ? '' : 'none';
+
+            var existing = grid.querySelector('.blocks-paste-item');
+            if (existing) {
+                // Already injected with the right group — nothing to do.
+                if (show && existing.dataset.pasteGroup === cb.group) { return; }
+                existing.remove();
+            }
             if (!show) { return; }
 
-            // Re-bind click each time the palette opens (fresh captured values).
             var capturedFieldBlocks = fieldBlocks;
             var capturedGroup = cb.group;
             var capturedFields = cb.fields;
 
-            // Remove any previously-bound listener without cloning (cloneNode causes a
-            // DOM mutation that re-triggers the MutationObserver → infinite loop).
-            if (pasteBtn._pasteHandler) {
-                pasteBtn.removeEventListener('click', pasteBtn._pasteHandler);
-            }
-            pasteBtn._pasteHandler = function () {
+            var a = document.createElement('a');
+            a.href = 'javascript:;';
+            a.innerHTML =
+                '<i class="icon-paste"></i>' +
+                '<div><span class="title">Paste block</span>' +
+                '<span class="description">Insert copied block</span></div>';
+            a.addEventListener('click', function () {
                 window.__pendingPaste = { fields: capturedFields, afterLi: null };
                 $(window).one('ajaxUpdateComplete', function () {
                     cleanupAddItems(capturedFieldBlocks);
                 });
                 requestAdd(capturedFieldBlocks, capturedGroup, capturedFields, null);
-            };
-            pasteBtn.addEventListener('click', pasteBtn._pasteHandler);
-            pasteBtn.style.display = '';
+            });
+
+            var item = document.createElement('div');
+            item.className = 'blocks-group-item blocks-paste-item';
+            item.dataset.pasteGroup = capturedGroup;
+            item.appendChild(a);
+            grid.insertBefore(item, grid.firstChild);
         }
 
         // Paste button on each block item — inserts the copied block immediately
