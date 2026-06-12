@@ -12,6 +12,11 @@ Provides a "block based" content management experience in Winter CMS
 
 ## Installation
 
+> **Using this fork?** Clone it directly into your Winter CMS plugins directory:
+> ```bash
+> git clone https://github.com/helmutkaufmann/wn-blocks-plugin-1.git plugins/winter/blocks
+> ```
+
 This plugin is available for installation via [Composer](http://getcomposer.org/).
 
 ```bash
