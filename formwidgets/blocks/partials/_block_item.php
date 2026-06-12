@@ -13,7 +13,7 @@ $itemIcon = $this->getGroupIcon($groupCode);
     <?php
     /*
      * All item controls live in one horizontal toolbar so they never overflow.
-     * Order: collapse, cut, paste, duplicate, [config], delete.
+     * Order: collapse, copy, cut, paste, duplicate, [config], delete.
      */
     ?>
     <div class="repeater-item-remove block-item-toolbar">

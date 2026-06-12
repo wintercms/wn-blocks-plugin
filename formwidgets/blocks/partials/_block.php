@@ -118,7 +118,7 @@
 
         // --- inject toolbar styles once ------------------------------------
         // Kept here (rather than only in blocks.less) so the per-block toolbar
-        // (collapse / cut / paste / duplicate / config / delete) renders
+        // (collapse / copy / cut / paste / duplicate / config / delete) renders
         // correctly even if the compiled CSS is stale.
         (function injectToolbarCss() {
             if (document.getElementById('wn-blocks-toolbar-css')) { return; }
@@ -141,8 +141,7 @@
                 // user sees the paste icon without having to hover. Full opacity on hover.
                 '.field-block-item.has-paste>.repeater-item-remove.block-item-toolbar{opacity:.45!important}' +
                 '.field-block-item.has-paste.hover>.repeater-item-remove.block-item-toolbar,' +
-                '.field-block-item.has-paste.focus>.repeater-item-remove.block-item-toolbar{opacity:1!important}' +
-                '';
+                '.field-block-item.has-paste.focus>.repeater-item-remove.block-item-toolbar{opacity:1!important}';
             var style = document.createElement('style');
             style.id = 'wn-blocks-toolbar-css';
             style.textContent = css;
@@ -348,10 +347,6 @@
                 '<div><span class="title">Paste block</span>' +
                 '<span class="description">Insert copied block</span></div>';
             a.addEventListener('click', function () {
-                window.__pendingPaste = { fields: capturedFields, afterLi: null };
-                $(window).one('ajaxUpdateComplete', function () {
-                    cleanupAddItems(capturedFieldBlocks);
-                });
                 requestAdd(capturedFieldBlocks, capturedGroup, capturedFields, null);
             });
 
@@ -468,7 +463,7 @@
         }
 
         // Add the "Paste block" entry to any open Add-Item palette grid. Runs after
-        // applyRecent so it ends up first. Idempotent (removes any prior entry).
+        // applyRecent so it ends up first. Idempotent via the data-paste-group guard.
         function applyPalettePaste() {
             document.querySelectorAll('.blocks-group-grid').forEach(injectPalettePaste);
         }
