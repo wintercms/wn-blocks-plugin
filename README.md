@@ -317,7 +317,7 @@ Use **Duplicate** for a quick in-place clone. Use **Paste after** (or **Paste bl
 
 Paste/duplicate respect the widget's `allow` / `ignore` / `tags` constraints: the paste affordances only appear where the copied block type is actually offered. The clipboard persists for the duration of the browser session (`sessionStorage`), so you can paste across different pages in the same tab.
 
-> **Note on nested blocks:** Field values — including nested `blocks` fields, which store their content as JSON — are captured and restored correctly. Rich-text and code editor widgets are refreshed automatically via their own APIs after paste.
+> **Note on nested blocks:** Field values — including nested `blocks` fields, which store their content as JSON — are captured and restored correctly. Rich-text and code editor widgets are refreshed automatically via their own APIs after paste. Field matching uses the trailing name segment (e.g. `content` from `Blocks[0][content]`), so two fields in the same block that share the same trailing key would collide — avoid duplicate field keys within a single block definition.
 
 ---
 
