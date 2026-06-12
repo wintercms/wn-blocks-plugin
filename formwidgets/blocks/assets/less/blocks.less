@@ -67,14 +67,6 @@
         .transform(rotate(180deg));
     }
 
-    // "Paste block" entry injected at the top of the Add-Item palette popover
-    // when the clipboard holds a block this widget accepts. Highlighted so it
-    // stands out from the regular block list.
-    .blocks-group-item.blocks-paste-item {
-        a .title { color: @link-color; }
-        i { color: @link-color; }
-    }
-
     .field-block-items {
         counter-reset: repeater-index-counter;
     }
@@ -510,11 +502,21 @@
 //
 
 .blocks-group-search-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     padding: 10px 15px;
     border-bottom: 1px solid #e0e0e0;
 
     > div {
+        flex: 1;
+        min-width: 0;
         position: relative;
+    }
+
+    .blocks-palette-paste-btn {
+        flex-shrink: 0;
+        white-space: nowrap;
     }
 
     .icon-search {

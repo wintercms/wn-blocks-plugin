@@ -57,6 +57,9 @@
                     <i class="icon-close"></i>
                 </button>
             </div>
+            <button type="button" class="btn btn-default btn-sm blocks-palette-paste-btn" style="display:none">
+                <i class="icon-paste"></i> Paste
+            </button>
         </div>
         <div class="blocks-group-no-results">
             No items found
@@ -137,8 +140,14 @@
                 '.block-item-action-remove:hover{color:#cc3300}' +
                 '.field-block-item.collapsed>.repeater-item-remove .repeater-item-collapse-one' +
                 '{transform:rotate(180deg)}' +
-                '.blocks-group-item.blocks-paste-item a .title{color:#0072bc}' +
-                '.blocks-group-item.blocks-paste-item i{color:#0072bc}';
+                // Dim-show the toolbar on blocks where clipboard paste is available so the
+                // user sees the paste icon without having to hover. Full opacity on hover.
+                '.field-block-item.has-paste>.repeater-item-remove.block-item-toolbar{opacity:.45!important}' +
+                '.field-block-item.has-paste.hover>.repeater-item-remove.block-item-toolbar,' +
+                '.field-block-item.has-paste.focus>.repeater-item-remove.block-item-toolbar{opacity:1!important}' +
+                '.blocks-group-search-container{display:flex;align-items:center;gap:8px}' +
+                '.blocks-group-search-container>div{flex:1;min-width:0}' +
+                '.blocks-palette-paste-btn{flex-shrink:0;white-space:nowrap}';
             var style = document.createElement('style');
             style.id = 'wn-blocks-toolbar-css';
             style.textContent = css;
@@ -218,7 +227,11 @@
             var ok = cb && cb.group;
             document.querySelectorAll('[data-block-paste]').forEach(function (btn) {
                 var fieldBlocks = btn.closest('.field-blocks');
-                btn.style.display = (ok && blockTypeAvailable(fieldBlocks, cb.group)) ? '' : 'none';
+                var show = ok && blockTypeAvailable(fieldBlocks, cb.group);
+                btn.style.display = show ? '' : 'none';
+                // Add/remove has-paste on the parent li so the CSS can dim-show the toolbar.
+                var li = btn.closest('.field-block-item');
+                if (li) { li.classList.toggle('has-paste', !!show); }
             });
         }
 
@@ -312,55 +325,47 @@
             if (add) { window.__activeBlocksWidget = add.closest('.field-blocks'); }
         });
 
-        // Inject a "Paste block" entry at the top of an Add-Item palette grid when
-        // the clipboard holds a block this widget accepts. The popover is rendered
-        // at body level, so compatibility is checked against the active widget.
+        // Show/hide the "Paste" button in the search bar of the Add-Item palette.
+        // The button lives in .blocks-group-search-container (outside the scrollpad)
+        // so it reliably receives clicks. fieldBlocks is captured when the palette
+        // opens (window.__activeBlocksWidget), not at click time.
         function injectPalettePaste(grid) {
-            var old = grid.querySelector('.blocks-paste-item');
-            if (old) { old.remove(); }
-
             var cb = getClipboard();
             var fieldBlocks = window.__activeBlocksWidget;
-            if (!cb || !cb.group || !blockTypeAvailable(fieldBlocks, cb.group)) { return; }
 
-            var item = document.createElement('div');
-            item.className = 'blocks-group-item blocks-paste-item';
-            item.innerHTML =
-                '<a href="javascript:;" data-block-paste-palette>' +
-                '<i class="icon-paste"></i>' +
-                '<div><span class="title">Paste block</span>' +
-                '<span class="description">Insert the copied block</span></div></a>';
-            grid.insertBefore(item, grid.firstChild);
+            // Find the paste button that sits in the search bar of this palette.
+            var container = grid.closest('.blocks-group-items-container');
+            var searchContainer = container && container.previousElementSibling;
+            while (searchContainer && !searchContainer.classList.contains('blocks-group-search-container')) {
+                searchContainer = searchContainer.previousElementSibling;
+            }
+            var pasteBtn = searchContainer && searchContainer.querySelector('.blocks-palette-paste-btn');
+            if (!pasteBtn) { return; }
+
+            var show = !!(cb && cb.group && blockTypeAvailable(fieldBlocks, cb.group));
+            pasteBtn.style.display = show ? '' : 'none';
+            if (!show) { return; }
+
+            // Re-bind click each time the palette opens (fresh captured values).
+            var capturedFieldBlocks = fieldBlocks;
+            var capturedGroup = cb.group;
+            var capturedFields = cb.fields;
+
+            // Remove any previously-bound listener without cloning (cloneNode causes a
+            // DOM mutation that re-triggers the MutationObserver → infinite loop).
+            if (pasteBtn._pasteHandler) {
+                pasteBtn.removeEventListener('click', pasteBtn._pasteHandler);
+            }
+            pasteBtn._pasteHandler = function () {
+                window.__pendingPaste = { fields: capturedFields, afterLi: null };
+                $(window).one('ajaxUpdateComplete', function () {
+                    cleanupAddItems(capturedFieldBlocks);
+                });
+                requestAdd(capturedFieldBlocks, capturedGroup, capturedFields, null);
+            };
+            pasteBtn.addEventListener('click', pasteBtn._pasteHandler);
+            pasteBtn.style.display = '';
         }
-
-        // Click on the injected palette paste entry. Set the pending fields, then
-        // fire the AJAX request on the real block-add link in the same popover grid
-        // — using $(link).request() (not a synthetic DOM click, which doesn't
-        // reliably trigger the handler). That link already carries the onAddItem
-        // handler, the _repeater_group data, and the form context, so this reuses
-        // core's proven add flow; the observer then fills the new block.
-        document.addEventListener('click', function (e) {
-            var a = e.target.closest('[data-block-paste-palette]');
-            if (!a) { return; }
-            e.preventDefault();
-            e.stopPropagation();
-            var cb = getClipboard();
-            if (!cb || !cb.group || typeof $ === 'undefined') { return; }
-            var grid = a.closest('.blocks-group-grid');
-            var addLink = grid && grid.querySelector(
-                'a[data-block-code="' + cb.group + '"][data-repeater-add]'
-            );
-            if (!addLink) { return; }
-            window.__pendingPaste = { fields: cb.fields, afterLi: null };
-            $(window).one('ajaxUpdateComplete', function () {
-                cleanupAddItems(window.__activeBlocksWidget);
-            });
-            // Use the link's own handler + form context (it lives in the popover,
-            // outside the form, so its data('request-form') is what makes it work).
-            $(addLink).request(addLink.getAttribute('data-request'), {
-                data: { _repeater_group: cb.group }
-            });
-        });
 
         // Paste button on each block item — inserts the copied block immediately
         // after it. Fires onAddItem; the MutationObserver moves the new <li> into place.
