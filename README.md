@@ -16,6 +16,10 @@ Provides a "block based" content management experience in Winter CMS
 > ```bash
 > git clone https://github.com/helmutkaufmann/wn-blocks-plugin-1.git plugins/winter/blocks
 > ```
+> To update to the latest version:
+> ```bash
+> git -C plugins/winter/blocks pull
+> ```
 
 This plugin is available for installation via [Composer](http://getcomposer.org/).
 
