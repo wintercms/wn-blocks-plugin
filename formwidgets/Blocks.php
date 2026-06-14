@@ -211,8 +211,6 @@ class Blocks extends Repeater
                 'icon'          => array_get($config, 'icon', 'icon-square-o'),
                 'description'   => array_get($config, 'description'),
                 'fields'        => $this->normalizeBlockFields((array) array_get($config, 'fields', [])),
-                'tabs'          => array_get($config, 'tabs'),
-                'secondaryTabs' => array_get($config, 'secondaryTabs'),
                 'config'        => array_get($config, 'config', null),
             ];
         }
@@ -266,31 +264,6 @@ class Blocks extends Repeater
         }
 
         return $fields;
-    }
-
-    /**
-     * Extends the parent config to pass tabs and secondaryTabs from the block
-     * definition through to the Backend Form widget.
-     */
-    protected function getGroupFormFieldConfig($code): ?array
-    {
-        $config = parent::getGroupFormFieldConfig($code);
-
-        if ($config === null) {
-            return null;
-        }
-
-        $def = $this->groupDefinitions[$code] ?? [];
-
-        if (!empty($def['tabs'])) {
-            $config['tabs'] = $def['tabs'];
-        }
-
-        if (!empty($def['secondaryTabs'])) {
-            $config['secondaryTabs'] = $def['secondaryTabs'];
-        }
-
-        return $config;
     }
 
     /**

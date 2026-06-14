@@ -52,7 +52,7 @@ class BlockManagerTest extends PluginTestCase
     }
 
     /**
-     * @testdox merges fields, tabs and config from an included file
+     * @testdox merges fields and config from an included file
      */
     public function testIncludeMergesDefinitions()
     {
@@ -70,9 +70,11 @@ class BlockManagerTest extends PluginTestCase
         $this->assertArrayHasKey('shared_field', $result['fields']);
         $this->assertArrayHasKey('title', $result['fields']);
 
-        // tabs and config from the include are merged in too.
-        $this->assertArrayHasKey('meta_title', $result['tabs']['fields']);
+        // config from the include is merged in too.
         $this->assertArrayHasKey('shared_config', $result['config']);
+
+        // tabs are not a supported merge key.
+        $this->assertArrayNotHasKey('tabs', $result);
     }
 
     /**

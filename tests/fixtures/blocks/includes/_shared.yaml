@@ -5,12 +5,6 @@ fields:
     overridden:
         label: From include
         type: text
-tabs:
-    fields:
-        meta_title:
-            label: Meta title
-            type: text
-            tab: SEO
 config:
     shared_config:
         label: Shared config

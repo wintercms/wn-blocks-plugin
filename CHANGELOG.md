@@ -13,14 +13,9 @@
 - **Open/closed state now persists** per section across page reloads
   (`localStorage`, keyed by field name).
 
-### Tabs
-- `.block` definitions may declare top-level `tabs` and `secondaryTabs`, passed
-  through to the backend `Form` widget like a standard `fields.yaml`.
-
 ### Shared field includes
 - `.block` definitions may declare a top-level `include:` (string or list) to
-  merge `fields`, `tabs`, `secondaryTabs`, and `config` from external plain-YAML
-  files.
+  merge `fields` and `config` from external plain-YAML files.
 - Included definitions form the base; the block's own definitions override on
   collision. Paths resolve via `File::symbolizePath()` (`$/`, `~/`, `#/`).
 - **Nested includes** are resolved recursively, guarded against circular

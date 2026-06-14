@@ -132,7 +132,7 @@ class BlockManager
      *         - ~/app/blocks/_tracking.yaml
      *
      * Each included file is a plain YAML file that may contain any of the keys
-     * `fields`, `tabs`, `secondaryTabs` and `config`. Included definitions are
+     * `fields` and `config`. Included definitions are
      * merged in order and act as a base; the block's own definitions take
      * precedence on key collisions.
      *
@@ -154,7 +154,7 @@ class BlockManager
         $paths = (array) $config['include'];
         unset($config['include']);
 
-        $mergeKeys = ['fields', 'tabs', 'secondaryTabs', 'config'];
+        $mergeKeys = ['fields', 'config'];
 
         foreach ($paths as $path) {
             if (!is_string($path) || $path === '') {
@@ -207,9 +207,8 @@ class BlockManager
      */
     protected function warnOnTypeCollisions(string $key, array $included, array $own): void
     {
-        $nested = in_array($key, ['tabs', 'secondaryTabs'], true);
-        $includedFields = $nested ? ($included['fields'] ?? []) : $included;
-        $ownFields = $nested ? ($own['fields'] ?? []) : $own;
+        $includedFields = $included;
+        $ownFields = $own;
 
         if (!is_array($includedFields) || !is_array($ownFields)) {
             return;

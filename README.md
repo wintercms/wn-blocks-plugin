@@ -8,7 +8,7 @@ Provides a "block based" content management experience in Winter CMS
 
 >**NOTE:** This plugin is still in development and is likely to undergo changes. Do not use in production environments without using a version constraint in your composer.json file and carefully monitoring for breaking changes.
 
-> **Block definition features:** **collapsible sections** (with persisted state), **tabs/secondaryTabs** support, **shared field includes** (with nested includes), and **recently used blocks** in the palette. See [Collapsible Sections](#collapsible-sections), [Tabs](#tabs), [Including shared field definitions](#including-shared-field-definitions), and [Recently used blocks](#recently-used-blocks) below. Full list in [CHANGELOG.md](CHANGELOG.md).
+> **Block definition features:** **collapsible sections** (with persisted state), **shared field includes** (with nested includes), and **recently used blocks** in the palette. See [Collapsible Sections](#collapsible-sections), [Including shared field definitions](#including-shared-field-definitions), and [Recently used blocks](#recently-used-blocks) below. Full list in [CHANGELOG.md](CHANGELOG.md).
 
 ## Installation
 
@@ -184,52 +184,6 @@ When `collapsible: true` is set, the section header becomes a click target. Sect
 
 ---
 
-## Tabs
-
-Block definitions can include `tabs` and/or `secondaryTabs` at the top level. These are passed through to the WinterCMS `Backend\Widgets\Form` widget exactly as they would be in a standard `fields.yaml` file.
-
-```yaml
-name: My Block
-description: A block with tabs
-icon: icon-th
-
-tabs:
-    cssClass: master-tabs
-    fields:
-        content:
-            label: Content
-            type: textarea
-            tab: Content
-
-        title:
-            label: Title
-            type: text
-            tab: Content
-
-        meta_title:
-            label: Meta title
-            type: text
-            tab: SEO
-
-        meta_description:
-            label: Meta description
-            type: textarea
-            tab: SEO
-
-secondaryTabs:
-    fields:
-        is_active:
-            label: Active
-            type: checkbox
-            tab: Settings
-==
-<div>{{ content }}</div>
-```
-
-Fields declared under `tabs` / `secondaryTabs` are placed in the tabbed area of the form widget. You can combine `tabs`, `secondaryTabs`, and the top-level `fields` array in the same block.
-
----
-
 ## Including shared field definitions
 
 To avoid repeating the same fields (or sections/tabs) across many blocks, a block can pull them in from one or more external YAML files via the top-level `include` key.
@@ -249,20 +203,17 @@ fields:
 <article>{{ title }}</article>
 ```
 
-`_seo.yaml` is a plain YAML file (no `==` markup, no block metadata) containing any of `fields`, `tabs`, `secondaryTabs`, or `config`:
+`_seo.yaml` is a plain YAML file (no `==` markup, no block metadata) containing any of `fields` or `config`:
 
 ```yaml
 # blocks/_seo.yaml
-tabs:
-    fields:
-        meta_title:
-            label: Meta title
-            type: text
-            tab: SEO
-        meta_description:
-            label: Meta description
-            type: textarea
-            tab: SEO
+fields:
+    meta_title:
+        label: Meta title
+        type: text
+    meta_description:
+        label: Meta description
+        type: textarea
 ```
 
 **Multiple includes** — pass a list; they are merged in order:
@@ -277,7 +228,7 @@ include:
 
 | | |
 |---|---|
-| Merged keys | `fields`, `tabs`, `secondaryTabs`, `config` |
+| Merged keys | `fields`, `config` |
 | Precedence | Included files form the base; the block's own definitions **override** on key collision |
 | Order | Multiple includes merge top-to-bottom (later files override earlier ones, the block still wins overall) |
 | Nested includes | An included file may itself declare `include:` — resolved recursively, with a circular-reference guard |
@@ -292,7 +243,7 @@ include:
 | `~/...` | application root |
 | `#/...` | `storage/app/...` |
 
-This works for `collapsible` sections and tabs too — an included file can define a complete collapsible section (or a whole tab group) that every block reuses without copy-paste.
+This works for `collapsible` sections too — an included file can define a complete collapsible section that every block reuses without copy-paste.
 
 ---
 
