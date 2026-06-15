@@ -231,25 +231,45 @@ class Blocks extends Repeater
         $index = $this->getNextIndex();
 
         $pasteConfig = null;
+        $isPaste = false;
         if ($pasteRaw = post('_paste_data')) {
             $decoded = json_decode($pasteRaw, true);
             if (is_array($decoded)) {
                 $this->pasteData[$index] = $decoded;
                 $pasteConfig = post('_paste_config') ?: null;
+                $isPaste = true;
             }
         }
 
-        $this->prepareVars();
-        $this->vars['widget'] = $this->makeItemFormWidget($index, $groupCode);
-        $this->vars['indexValue'] = $index;
-        $this->indexConfigMeta[$index] = $pasteConfig;
+        // Repeater::$onAddItemCalled is a *static* flag set during init() of the
+        // repeater handling this AJAX request. While set, every repeater —
+        // including any nested repeater inside the new item — skips processItems()
+        // (Repeater.php:158,179), which normally stops a new empty item pulling a
+        // sibling's data. But when pasting we *want* the new item's nested
+        // repeaters to build their rows from the seeded data, so clear the flag
+        // for the duration of the build/render and restore it afterwards.
+        $restoreAddItemFlag = self::$onAddItemCalled;
+        if ($isPaste) {
+            self::$onAddItemCalled = false;
+        }
+
+        try {
+            $this->prepareVars();
+            $this->vars['widget'] = $this->makeItemFormWidget($index, $groupCode);
+            $this->vars['indexValue'] = $index;
+            $this->indexConfigMeta[$index] = $pasteConfig;
+
+            $html = $this->makePartial('block_item') . $this->makePartial('block_add_item');
+        } finally {
+            self::$onAddItemCalled = $restoreAddItemFlag;
+        }
 
         $itemContainer = '@#' . $this->getId('items');
         $addItemContainer = '#' . $this->getId('add-item');
 
         return [
             $addItemContainer => '',
-            $itemContainer => $this->makePartial('block_item') . $this->makePartial('block_add_item')
+            $itemContainer => $html
         ];
     }
 
