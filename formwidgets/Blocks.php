@@ -241,20 +241,24 @@ class Blocks extends Repeater
             }
         }
 
+        // Keep the static $onAddItemCalled flag set during prepareVars() so the
+        // OUTER repeater skips re-processing every existing item (Repeater.php:179)
+        // — we only render the new item here, so rebuilding the rest is wasted work.
+        $this->prepareVars();
+
         // Repeater::$onAddItemCalled is a *static* flag set during init() of the
         // repeater handling this AJAX request. While set, every repeater —
         // including any nested repeater inside the new item — skips processItems()
         // (Repeater.php:158,179), which normally stops a new empty item pulling a
         // sibling's data. But when pasting we *want* the new item's nested
         // repeaters to build their rows from the seeded data, so clear the flag
-        // for the duration of the build/render and restore it afterwards.
+        // only while building and rendering the new item, then restore it.
         $restoreAddItemFlag = self::$onAddItemCalled;
         if ($isPaste) {
             self::$onAddItemCalled = false;
         }
 
         try {
-            $this->prepareVars();
             $this->vars['widget'] = $this->makeItemFormWidget($index, $groupCode);
             $this->vars['indexValue'] = $index;
             $this->indexConfigMeta[$index] = $pasteConfig;
