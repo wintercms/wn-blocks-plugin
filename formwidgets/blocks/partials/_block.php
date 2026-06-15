@@ -6,6 +6,7 @@
     <?= $style ? 'data-style="'.$style.'"' : '' ?>
     data-mode="<?= $mode ?>"
     data-add-handler="<?= $this->getEventHandler('onAddItem') ?>"
+    data-copy-handler="<?= $this->getEventHandler('onCopyItem') ?>"
     data-block-codes="<?= e(implode(',', array_keys($groupDefinitions))) ?>"
     <?php if ($mode === 'grid'): ?> data-columns="<?= $columns ?>" <?php endif ?>
     <?php if ($sortable) : ?>
@@ -172,53 +173,28 @@
             } catch (e) { return null; }
         }
 
-        // Serialize all named inputs in a block <li> by their trailing [key] segment.
-        // The _group hidden input gives us the block type; all other inputs are field data.
-        // Nested blocks fields store their JSON in a hidden input, so they serialize cleanly.
-        function serializeBlockItem(li) {
-            var data = { group: null, fields: {} };
-            li.querySelectorAll('input[name], select[name], textarea[name]').forEach(function (el) {
-                var m = el.name.match(/\[([^\[\]]+)\]$/);
-                if (!m) { return; }
-                var key = m[1];
-                if (key === '_group') {
-                    if (!data.group) { data.group = el.value; }
-                } else {
-                    data.fields[key] = el.value;
+        // Copy a block item's full saved data to the clipboard via the server.
+        // A server round-trip (onCopyItem -> Form::getSaveData) captures every
+        // field type correctly — switches, mediafinders, nested repeaters — which
+        // a client-side DOM scrape cannot. Stored payload: { group, config, data }.
+        // `done(payload)` runs once the clipboard has been set.
+        function copyItemToClipboard(li, done) {
+            if (typeof $ === 'undefined' || !li) { return; }
+            var fieldBlocks = li.closest('.field-blocks');
+            var handler = fieldBlocks && fieldBlocks.getAttribute('data-copy-handler');
+            var index = li.getAttribute('data-block-index');
+            var group = li.getAttribute('data-block-group');
+            if (!handler || index === null) { return; }
+            $(fieldBlocks).request(handler, {
+                data: { _repeater_index: index, _repeater_group: group },
+                success: function (response) {
+                    var payload;
+                    try { payload = JSON.parse(response.result); } catch (e) { return; }
+                    if (!payload || !payload.group) { return; }
+                    ssSet(CLIPBOARD_KEY, JSON.stringify(payload));
+                    updatePasteButtons();
+                    if (typeof done === 'function') { done(payload); }
                 }
-            });
-            return data;
-        }
-
-        // Fill form inputs in a newly added <li> from stored field values.
-        // Matches by trailing [key] segment — works for flat fields and JSON hidden inputs.
-        function fillFromClipboard(li, fields) {
-            li.querySelectorAll('input[name], select[name], textarea[name]').forEach(function (el) {
-                var m = el.name.match(/\[([^\[\]]+)\]$/);
-                if (!m) { return; }
-                var key = m[1];
-                if (Object.prototype.hasOwnProperty.call(fields, key)) {
-                    el.value = fields[key];
-                    // Dispatch change so any widget listeners (e.g. select2, codemirror) react.
-                    el.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-            });
-            refreshWidgets(li);
-        }
-
-        // Refresh complex editor widgets (richeditor/Froala, codeeditor/CodeMirror) after
-        // a paste fill. These widgets maintain their own internal state and do not re-read
-        // the underlying textarea on a native change event, so we call their own APIs.
-        // Data keys ('oc.richEditor', 'oc.codeEditor') are set by Winter's widget plugins.
-        function refreshWidgets(li) {
-            if (typeof $ === 'undefined') { return; }
-            $(li).find('textarea').each(function () {
-                var w = $(this).data('oc.richEditor');
-                if (w && w.editor && w.editor.html) { w.editor.html.set(this.value); }
-            });
-            $(li).find('[data-control]').each(function () {
-                var w = $(this).data('oc.codeEditor');
-                if (w) { w.setValue($(this).find('textarea').val() || ''); }
             });
         }
 
@@ -263,16 +239,23 @@
                 });
         }
 
-        // Fire onAddItem on a widget, with the empty-add-item cleanup applied once
-        // the AJAX update has been applied.
-        function requestAdd(fieldBlocks, group, fields, afterLi) {
+        // Fire onAddItem with the copied block's data so the server renders the
+        // new item fully populated. We only remember where to move the new <li>
+        // once it arrives; the server handles all field population.
+        function requestPaste(fieldBlocks, payload, afterLi) {
             var handler = findAddHandler(fieldBlocks);
-            if (!handler || typeof $ === 'undefined') { return; }
-            window.__pendingPaste = { fields: fields, afterLi: afterLi || null };
+            if (!handler || typeof $ === 'undefined' || !payload || !payload.group) { return; }
+            window.__pendingPasteMove = { afterLi: afterLi || null };
             $(window).one('ajaxUpdateComplete', function () {
                 cleanupAddItems(fieldBlocks);
             });
-            $(fieldBlocks).request(handler, { data: { _repeater_group: group } });
+            $(fieldBlocks).request(handler, {
+                data: {
+                    _repeater_group: payload.group,
+                    _paste_data: JSON.stringify(payload.data || {}),
+                    _paste_config: payload.config || ''
+                }
+            });
         }
 
         // Collapse chevron (moved into the toolbar, so the core delegated handler
@@ -295,9 +278,7 @@
             e.preventDefault();
             e.stopPropagation();
             var li = btn.closest('.field-block-item');
-            if (!li) { return; }
-            ssSet(CLIPBOARD_KEY, JSON.stringify(serializeBlockItem(li)));
-            updatePasteButtons();
+            copyItemToClipboard(li);
         });
 
         // Duplicate button: clone this block in place (insert a copy right after it)
@@ -309,11 +290,9 @@
             e.stopPropagation();
             var li = btn.closest('.field-block-item');
             if (!li) { return; }
-            var data = serializeBlockItem(li);
-            if (!data.group) { return; }
-            ssSet(CLIPBOARD_KEY, JSON.stringify(data));
-            updatePasteButtons();
-            requestAdd(li.closest('.field-blocks'), data.group, data.fields, li);
+            copyItemToClipboard(li, function (payload) {
+                requestPaste(li.closest('.field-blocks'), payload, li);
+            });
         });
 
         // Cut button: copy then trigger the existing remove button (with confirm).
@@ -323,10 +302,10 @@
             e.stopPropagation();
             var li = btn.closest('.field-block-item');
             if (!li) { return; }
-            ssSet(CLIPBOARD_KEY, JSON.stringify(serializeBlockItem(li)));
-            updatePasteButtons();
-            var removeBtn = li.querySelector('[data-repeater-remove]');
-            if (removeBtn) { removeBtn.click(); }
+            copyItemToClipboard(li, function () {
+                var removeBtn = li.querySelector('[data-repeater-remove]');
+                if (removeBtn) { removeBtn.click(); }
+            });
         });
 
         // Remember which widget's Add-Item palette is open, so a paste entry
@@ -355,7 +334,7 @@
 
             var capturedFieldBlocks = fieldBlocks;
             var capturedGroup = cb.group;
-            var capturedFields = cb.fields;
+            var capturedPayload = cb;
 
             var a = document.createElement('a');
             a.href = 'javascript:;';
@@ -364,7 +343,7 @@
                 '<div><span class="title">Paste block</span>' +
                 '<span class="description">Insert copied block</span></div>';
             a.addEventListener('click', function () {
-                requestAdd(capturedFieldBlocks, capturedGroup, capturedFields, null);
+                requestPaste(capturedFieldBlocks, capturedPayload, null);
             });
 
             var item = document.createElement('div');
@@ -384,7 +363,7 @@
             var cb = getClipboard();
             if (!cb || !cb.group) { return; }
             var li = btn.closest('.field-block-item');
-            requestAdd(li.closest('.field-blocks'), cb.group, cb.fields, li);
+            requestPaste(li.closest('.field-blocks'), cb, li);
         });
 
         // --- collapsible sections ------------------------------------------
@@ -503,20 +482,20 @@
         var observer = new MutationObserver(function (mutations) {
             // When a paste is pending, find the newly added block <li>, move it after
             // the source block, and fill its fields — all before the debounced runAll fires.
-            if (window.__pendingPaste) {
-                var pending = window.__pendingPaste;
+            if (window.__pendingPasteMove) {
+                var pending = window.__pendingPasteMove;
                 for (var i = 0; i < mutations.length; i++) {
                     mutations[i].addedNodes.forEach(function (node) {
                         if (node.nodeType === 1 && node.classList &&
                                 node.classList.contains('field-block-item')) {
-                            window.__pendingPaste = null;
-                            // Move the new item to immediately after the source item.
+                            window.__pendingPasteMove = null;
+                            // The server already populated the fields; we only
+                            // move the new item to sit after the source block.
                             if (pending.afterLi && pending.afterLi.parentNode) {
                                 pending.afterLi.parentNode.insertBefore(
                                     node, pending.afterLi.nextSibling
                                 );
                             }
-                            fillFromClipboard(node, pending.fields);
                         }
                     });
                 }

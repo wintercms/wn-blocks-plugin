@@ -7,6 +7,8 @@ $itemIcon = $this->getGroupIcon($groupCode);
 ?>
 <li
     class="field-repeater-item field-block-item<?php if (!count($widget->getFields())): ?> empty<?php endif ?>"
+    data-block-index="<?= $indexValue ?>"
+    data-block-group="<?= $groupCode ?>"
     <?php if ($mode === 'grid'): ?>style="min-height: <?= $rowHeight ?>px"<?php endif ?>
 >
 

@@ -33,6 +33,14 @@ class Blocks extends Repeater
     public array $indexConfigMeta = [];
 
     /**
+     * Block data to seed into a freshly added item, keyed by index. Used by the
+     * server-side paste flow so a pasted block renders fully populated (switches,
+     * mediafinders, nested repeaters) instead of relying on lossy client-side
+     * field scraping.
+     */
+    protected array $pasteData = [];
+
+    /**
      * {@inheritDoc}
      */
     public function init()
@@ -171,6 +179,50 @@ class Blocks extends Repeater
 
     /**
      * {@inheritDoc}
+     *
+     * Returns the data at a given index, preferring data seeded for the
+     * server-side paste flow (see onAddItem).
+     */
+    protected function getValueFromIndex($index)
+    {
+        if (array_key_exists($index, $this->pasteData)) {
+            return $this->pasteData[$index];
+        }
+
+        return parent::getValueFromIndex($index);
+    }
+
+    /**
+     * Returns the full saved data for a single block item, for the copy/cut/
+     * duplicate clipboard. Building the item's Form widget and calling
+     * getSaveData() captures every field type correctly — including switches,
+     * mediafinders and nested repeaters — which a client-side DOM scrape cannot.
+     */
+    public function onCopyItem()
+    {
+        $index = post('_repeater_index');
+        $groupCode = post('_repeater_group');
+
+        $widget = $this->makeItemFormWidget($index, $groupCode);
+
+        // The Inspector config is repeater meta, not a form field, so read it
+        // straight from the posted item value rather than getSaveData().
+        $config = array_get(parent::getValueFromIndex($index), '_config') ?: null;
+
+        return [
+            'result' => json_encode([
+                'group'  => $groupCode,
+                'config' => $config,
+                'data'   => $widget->getSaveData(),
+            ]),
+        ];
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * Accepts optional `_paste_data` (a JSON-encoded block data array from
+     * onCopyItem) and `_paste_config` to render the new item pre-populated.
      */
     public function onAddItem()
     {
@@ -178,9 +230,19 @@ class Blocks extends Repeater
 
         $index = $this->getNextIndex();
 
+        $pasteConfig = null;
+        if ($pasteRaw = post('_paste_data')) {
+            $decoded = json_decode($pasteRaw, true);
+            if (is_array($decoded)) {
+                $this->pasteData[$index] = $decoded;
+                $pasteConfig = post('_paste_config') ?: null;
+            }
+        }
+
         $this->prepareVars();
         $this->vars['widget'] = $this->makeItemFormWidget($index, $groupCode);
         $this->vars['indexValue'] = $index;
+        $this->indexConfigMeta[$index] = $pasteConfig;
 
         $itemContainer = '@#' . $this->getId('items');
         $addItemContainer = '#' . $this->getId('add-item');
