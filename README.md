@@ -8,7 +8,7 @@ Provides a "block based" content management experience in Winter CMS
 
 >**NOTE:** This plugin is still in development and is likely to undergo changes. Do not use in production environments without using a version constraint in your composer.json file and carefully monitoring for breaking changes.
 
-> **Block definition features:** **collapsible sections** (with persisted state), **shared field includes** (with nested includes), and **recently used blocks** in the palette. See [Collapsible Sections](#collapsible-sections), [Including shared field definitions](#including-shared-field-definitions), and [Recently used blocks](#recently-used-blocks) below. Full list in [CHANGELOG.md](CHANGELOG.md).
+> **Block definition features:** **collapsible sections** (with persisted state), **shared field includes** (with nested includes), **recently used blocks** in the palette, and a **cross-request config cache** for fast backend page loads. Copy/Cut/Paste/Duplicate is fully server-side and captures all field types (switches, mediafinders, nested repeaters). See [Collapsible Sections](#collapsible-sections), [Including shared field definitions](#including-shared-field-definitions), [Recently used blocks](#recently-used-blocks), and [Cut, paste and duplicate blocks](#cut-paste-and-duplicate-blocks) below. Full list in [CHANGELOG.md](CHANGELOG.md).
 
 ## Installation
 
@@ -268,7 +268,7 @@ Use **Duplicate** for a quick in-place clone. Use **Paste after** (or **Paste bl
 
 Paste/duplicate respect the widget's `allow` / `ignore` / `tags` constraints: the paste affordances only appear where the copied block type is actually offered. The clipboard persists for the duration of the browser session (`sessionStorage`), so you can paste across different pages in the same tab.
 
-> **Note on nested blocks:** Field values — including nested `blocks` fields, which store their content as JSON — are captured and restored correctly. Rich-text and code editor widgets are refreshed automatically via their own APIs after paste. Field matching uses the trailing name segment (e.g. `content` from `Blocks[0][content]`), so two fields in the same block that share the same trailing key would collide — avoid duplicate field keys within a single block definition.
+> **How copy/paste works:** Copying a block calls a server-side handler (`onCopyItem`) that builds the block's form widget and calls `getSaveData()`. This correctly captures every field type — including switches, mediafinders, and nested repeaters with their own rows — which a client-side DOM scrape cannot. The payload is stored in `sessionStorage` and sent back on paste, where the new item is rendered server-side pre-populated. Rich-text and code editor widgets are refreshed via their own APIs after the item is inserted into the DOM.
 
 ---
 
