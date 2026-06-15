@@ -44,16 +44,6 @@ class BlockManager
      */
     protected $configCache = [];
 
-    /**
-     * @var CmsObjectCollection|null Per-request memoization of getBlocks().
-     *
-     * Block::listInTheme() rescans every block file in the active theme on each
-     * call (~17ms warm, ~90ms cold for ~100 blocks). It is hit from getConfigs()
-     * for each distinct tag set and from BlocksDatasource, so sharing one result
-     * per request removes the redundant scans. The theme's block set does not
-     * change within a request.
-     */
-    protected $blocksCache = null;
 
     public function init(): void
     {
@@ -104,7 +94,7 @@ class BlockManager
      */
     public function getBlocks(): CmsObjectCollection
     {
-        return $this->blocksCache ??= Block::listInTheme(Theme::getActiveTheme());
+        return Block::listInTheme(Theme::getActiveTheme());
     }
 
     /**
