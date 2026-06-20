@@ -331,9 +331,14 @@ class Blocks extends Repeater
                 'span',
             ]));
 
-            if (isset($defined['options']) && is_array($defined['options'])) {
-                foreach ($defined['options'] as $key => &$value) {
-                    $value = Lang::get($value);
+            if (isset($defined['options'])) {
+                if (is_array($defined['options'])) {
+                    foreach ($defined['options'] as $key => &$value) {
+                        $value = Lang::get($value);
+                    }
+                } elseif (is_callable($defined['options'])) {
+                    $callable = $defined['options'];
+                    $defined['options'] = $callable($property);
                 }
             }
 
