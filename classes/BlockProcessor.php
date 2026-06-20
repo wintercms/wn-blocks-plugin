@@ -32,7 +32,8 @@ class BlockProcessor extends Processor
             'content' => $content,
             'mtime' => array_get($result, 'mtime'),
             'markup' => $processed['markup'],
-            'code' => $processed['code']
+            'code' => $processed['code'],
+            'yaml' => $processed['yaml'],
         ] + $processed['settings'];
     }
 
