@@ -33,6 +33,14 @@ class Blocks extends Repeater
     public array $indexConfigMeta = [];
 
     /**
+     * Block data to seed into a freshly added item, keyed by index. Used by the
+     * server-side paste flow so a pasted block renders fully populated (switches,
+     * mediafinders, nested repeaters) instead of relying on lossy client-side
+     * field scraping.
+     */
+    protected array $pasteData = [];
+
+    /**
      * {@inheritDoc}
      */
     public function init()
@@ -53,6 +61,9 @@ class Blocks extends Repeater
     {
         $this->addCss('css/blocks.css', 'Winter.Blocks');
         $this->addJs('js/blocks.js', 'Winter.Blocks');
+        // Collapsible-section behaviour is bootstrapped inline in the block
+        // widget partial (formwidgets/blocks/partials/_block.php) so it loads
+        // reliably regardless of asset-path resolution or the asset combiner.
     }
 
     /**
@@ -168,6 +179,50 @@ class Blocks extends Repeater
 
     /**
      * {@inheritDoc}
+     *
+     * Returns the data at a given index, preferring data seeded for the
+     * server-side paste flow (see onAddItem).
+     */
+    protected function getValueFromIndex($index)
+    {
+        if (array_key_exists($index, $this->pasteData)) {
+            return $this->pasteData[$index];
+        }
+
+        return parent::getValueFromIndex($index);
+    }
+
+    /**
+     * Returns the full saved data for a single block item, for the copy/cut/
+     * duplicate clipboard. Building the item's Form widget and calling
+     * getSaveData() captures every field type correctly — including switches,
+     * mediafinders and nested repeaters — which a client-side DOM scrape cannot.
+     */
+    public function onCopyItem()
+    {
+        $index = post('_repeater_index');
+        $groupCode = post('_repeater_group');
+
+        $widget = $this->makeItemFormWidget($index, $groupCode);
+
+        // The Inspector config is repeater meta, not a form field, so read it
+        // straight from the posted item value rather than getSaveData().
+        $config = array_get(parent::getValueFromIndex($index), '_config') ?: null;
+
+        return [
+            'result' => json_encode([
+                'group'  => $groupCode,
+                'config' => $config,
+                'data'   => $widget->getSaveData(),
+            ]),
+        ];
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * Accepts optional `_paste_data` (a JSON-encoded block data array from
+     * onCopyItem) and `_paste_config` to render the new item pre-populated.
      */
     public function onAddItem()
     {
@@ -175,16 +230,50 @@ class Blocks extends Repeater
 
         $index = $this->getNextIndex();
 
+        $pasteConfig = null;
+        $isPaste = false;
+        if ($pasteRaw = post('_paste_data')) {
+            $decoded = json_decode($pasteRaw, true);
+            if (is_array($decoded)) {
+                $this->pasteData[$index] = $decoded;
+                $pasteConfig = post('_paste_config') ?: null;
+                $isPaste = true;
+            }
+        }
+
+        // Keep the static $onAddItemCalled flag set during prepareVars() so the
+        // OUTER repeater skips re-processing every existing item (Repeater.php:179)
+        // — we only render the new item here, so rebuilding the rest is wasted work.
         $this->prepareVars();
-        $this->vars['widget'] = $this->makeItemFormWidget($index, $groupCode);
-        $this->vars['indexValue'] = $index;
+
+        // Repeater::$onAddItemCalled is a *static* flag set during init() of the
+        // repeater handling this AJAX request. While set, every repeater —
+        // including any nested repeater inside the new item — skips processItems()
+        // (Repeater.php:158,179), which normally stops a new empty item pulling a
+        // sibling's data. But when pasting we *want* the new item's nested
+        // repeaters to build their rows from the seeded data, so clear the flag
+        // only while building and rendering the new item, then restore it.
+        $restoreAddItemFlag = self::$onAddItemCalled;
+        if ($isPaste) {
+            self::$onAddItemCalled = false;
+        }
+
+        try {
+            $this->vars['widget'] = $this->makeItemFormWidget($index, $groupCode);
+            $this->vars['indexValue'] = $index;
+            $this->indexConfigMeta[$index] = $pasteConfig;
+
+            $html = $this->makePartial('block_item') . $this->makePartial('block_add_item');
+        } finally {
+            self::$onAddItemCalled = $restoreAddItemFlag;
+        }
 
         $itemContainer = '@#' . $this->getId('items');
         $addItemContainer = '#' . $this->getId('add-item');
 
         return [
             $addItemContainer => '',
-            $itemContainer => $this->makePartial('block_item') . $this->makePartial('block_add_item')
+            $itemContainer => $html
         ];
     }
 
@@ -203,12 +292,12 @@ class Blocks extends Repeater
             }
 
             $definitions[$code] = [
-                'code' => $code,
-                'name' => array_get($config, 'name'),
-                'icon' => array_get($config, 'icon', 'icon-square-o'),
-                'description' => array_get($config, 'description'),
-                'fields' => array_get($config, 'fields'),
-                'config' => array_get($config, 'config', null),
+                'code'          => $code,
+                'name'          => array_get($config, 'name'),
+                'icon'          => array_get($config, 'icon', 'icon-square-o'),
+                'description'   => array_get($config, 'description'),
+                'fields'        => $this->normalizeBlockFields((array) array_get($config, 'fields', [])),
+                'config'        => array_get($config, 'config', null),
             ];
         }
 
@@ -217,6 +306,50 @@ class Blocks extends Repeater
 
         $this->groupDefinitions = $definitions;
         $this->useGroups = true;
+    }
+
+    /**
+     * Translates block YAML shorthands before the fields are handed to the form widget.
+     *
+     * Supported shorthands on `type: section` fields:
+     *   collapsible: true          — makes the section click-to-collapse
+     *   collapsed: true|false      — initial state (true = start collapsed, false = start open)
+     *                                defaults to true when collapsible is set
+     */
+    protected function normalizeBlockFields(array $fields): array
+    {
+        foreach ($fields as &$field) {
+            if (($field['type'] ?? '') !== 'section') {
+                continue;
+            }
+
+            if (!array_key_exists('collapsible', $field)) {
+                continue;
+            }
+
+            if ($field['collapsible']) {
+                $startCollapsed = $field['collapsed'] ?? true;
+
+                // Use our own data attribute (NOT data-field-collapsible) so the
+                // core form widget's bindCollapsibleSections() never touches these
+                // sections. Core re-runs that on every FormWidget init — including
+                // when a nested repeater adds an item — which would re-collapse and
+                // double-bind handlers on sections the user manually opened. We own
+                // the behaviour entirely in collapsible.js instead.
+                $field['containerAttributes'] = array_merge(
+                    $field['containerAttributes'] ?? [],
+                    ['data-block-collapsible' => 1]
+                );
+
+                if (!$startCollapsed) {
+                    $field['containerAttributes']['data-block-collapsible-open'] = 1;
+                }
+            }
+
+            unset($field['collapsible'], $field['collapsed']);
+        }
+
+        return $fields;
     }
 
     /**

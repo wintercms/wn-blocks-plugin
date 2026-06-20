@@ -8,8 +8,9 @@ Provides a "block based" content management experience in Winter CMS
 
 >**NOTE:** This plugin is still in development and is likely to undergo changes. Do not use in production environments without using a version constraint in your composer.json file and carefully monitoring for breaking changes.
 
-## Installation
+> **Block definition features:** **collapsible sections** (with persisted state), **shared field includes** (with nested includes), **recently used blocks** in the palette, and a **cross-request config cache** for fast backend page loads. Copy/Cut/Paste/Duplicate is fully server-side and captures all field types (switches, mediafinders, nested repeaters). See [Collapsible Sections](#collapsible-sections), [Including shared field definitions](#including-shared-field-definitions), [Recently used blocks](#recently-used-blocks), and [Cut, paste and duplicate blocks](#cut-paste-and-duplicate-blocks) below. Full list in [CHANGELOG.md](CHANGELOG.md).
 
+## Installation
 This plugin is available for installation via [Composer](http://getcomposer.org/).
 
 ```bash
@@ -99,7 +100,7 @@ For example, let's say you have a **Title** block which can display a heading ta
 
 **Example:**
 
-```
+```yaml
 name: Title
 description: Adds a title
 icon: icon-heading
@@ -143,6 +144,123 @@ config:
     {{ content }}
 </{{ config.size }}>
 ```
+
+## Collapsible Sections
+
+Block fields that use `type: section` can be made collapsible directly in the block YAML.
+
+```yaml
+fields:
+    section_advanced:
+        label: Advanced settings
+        type: section
+        collapsible: true        # makes the section click-to-collapse
+        collapsed: true          # initial state: true = start collapsed (default), false = start open
+    some_field:
+        label: Some field
+        type: text
+```
+
+**Shorthand rules:**
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `collapsible` | bool | — | Set to `true` to enable the collapse toggle |
+| `collapsed` | bool | `true` | Initial state. `false` = section starts open |
+
+When `collapsible: true` is set, the section header becomes a click target. Sections start collapsed by default; set `collapsed: false` to have the section open on first load. Each section's open/closed state is **remembered across page reloads** (stored in `localStorage`, keyed by field name), so the editor returns to the state you left it in.
+
+> **Note:** Collapsible behaviour is handled via the `data-block-collapsible` attribute, bootstrapped inline in the block widget partial (`formwidgets/blocks/partials/_block.php`), independent of WinterCMS's core collapsible-section JS. This is deliberate: core re-collapses and re-binds every section on each form-widget init — including when a nested repeater adds an item — which broke manually-opened sections and stalled repeater "Add item" clicks. Owning the behaviour avoids that entirely, so collapsible sections work correctly even with repeater fields nested inside them.
+
+---
+
+## Including shared field definitions
+
+To avoid repeating the same fields (or sections/tabs) across many blocks, a block can pull them in from one or more external YAML files via the top-level `include` key.
+
+```yaml
+name: Article
+description: An article block
+icon: icon-newspaper
+
+include: $/myauthor/myplugin/blocks/_seo.yaml
+
+fields:
+    title:
+        label: Title
+        type: text
+==
+<article>{{ title }}</article>
+```
+
+`_seo.yaml` is a plain YAML file (no `==` markup, no block metadata) containing any of `fields` or `config`:
+
+```yaml
+# blocks/_seo.yaml
+fields:
+    meta_title:
+        label: Meta title
+        type: text
+    meta_description:
+        label: Meta description
+        type: textarea
+```
+
+**Multiple includes** — pass a list; they are merged in order:
+
+```yaml
+include:
+    - $/myauthor/myplugin/blocks/_seo.yaml
+    - ~/app/blocks/_tracking.yaml
+```
+
+**Merge rules:**
+
+| | |
+|---|---|
+| Merged keys | `fields`, `config` |
+| Precedence | Included files form the base; the block's own definitions **override** on key collision |
+| Order | Multiple includes merge top-to-bottom (later files override earlier ones, the block still wins overall) |
+| Nested includes | An included file may itself declare `include:` — resolved recursively, with a circular-reference guard |
+| Type guard | Redefining a field with a different `type` than the include logs a warning |
+| Missing files | Skipped, and logged as a warning |
+
+**Path resolution** uses the standard Winter path symbols via `File::symbolizePath()`:
+
+| Symbol | Resolves to |
+|---|---|
+| `$/author/plugin/...` | `plugins/author/plugin/...` |
+| `~/...` | application root |
+| `#/...` | `storage/app/...` |
+
+This works for `collapsible` sections too — an included file can define a complete collapsible section that every block reuses without copy-paste.
+
+---
+
+## Recently used blocks
+
+When adding a block from the palette, the blocks you use most recently are pinned to the top of the list (tracked per browser in `localStorage`, most-recent first). This speeds up repetitive content building where the same few block types are added over and over. No configuration is required.
+
+---
+
+## Cut, paste and duplicate blocks
+
+Every block has a single horizontal toolbar (top-right) with, in order:
+**collapse**, **copy**, **cut**, **paste**, **duplicate**, *(config, if the
+block has an inspector)* and **delete**.
+
+- **Copy** — places the block's field values on the clipboard (non-destructive).
+- **Cut** — places the block's field values on the clipboard, then removes it (with the usual confirmation prompt).
+- **Paste after** — once the clipboard holds a block, a per-block paste icon inserts the copied block immediately **after** that block. A **Paste block** entry also appears at the top of the "Add Block" palette (the popover opened by *+ Add New Item*), which is handy for inserting into an empty widget or at the end of a list.
+- **Duplicate** — one-step clone: serialises the current block, saves it to the clipboard, and immediately inserts a filled copy right after it.
+
+Use **Duplicate** for a quick in-place clone. Use **Paste after** (or **Paste block** in the palette) when you want to insert a previously copied block at a specific position or into a different widget.
+
+Paste/duplicate respect the widget's `allow` / `ignore` / `tags` constraints: the paste affordances only appear where the copied block type is actually offered. The clipboard persists for the duration of the browser session (`sessionStorage`), so you can paste across different pages in the same tab.
+
+> **How copy/paste works:** Copying a block calls a server-side handler (`onCopyItem`) that builds the block's form widget and calls `getSaveData()`. This correctly captures every field type — including switches, mediafinders, and nested repeaters with their own rows — which a client-side DOM scrape cannot. The payload is stored in `sessionStorage` and sent back on paste, where the new item is rendered server-side pre-populated. Rich-text and code editor widgets are refreshed via their own APIs after the item is inserted into the DOM.
+
+---
 
 ## Using the `blocks` FormWidget
 

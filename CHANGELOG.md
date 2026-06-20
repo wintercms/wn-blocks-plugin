@@ -1,0 +1,69 @@
+# Changelog
+
+## Unreleased
+
+### Collapsible sections
+- `.block` `type: section` fields support a `collapsible: true` shorthand, with
+  `collapsed: true|false` controlling the initial state.
+- Handled via the `data-block-collapsible` attribute and an inline bootstrap in
+  the block widget partial, independent of core's collapsible-section JS. This
+  fixes the core behaviour where adding an item to a repeater nested inside a
+  section re-collapsed it and double-bound its click handler (causing the
+  "Add item" stall).
+- **Open/closed state now persists** per section across page reloads
+  (`localStorage`, keyed by field name).
+
+### Shared field includes
+- `.block` definitions may declare a top-level `include:` (string or list) to
+  merge `fields` and `config` from external plain-YAML files.
+- Included definitions form the base; the block's own definitions override on
+  collision. Paths resolve via `File::symbolizePath()` (`$/`, `~/`, `#/`).
+- **Nested includes** are resolved recursively, guarded against circular
+  references.
+- A **schema guard** logs a warning when an include would redefine a field with
+  a different `type`.
+- Missing include files are skipped and logged as a warning.
+
+### Performance
+- **Cross-request config cache** — `BlockManager::getConfigs()` now stores
+  built block configs in the Laravel cache (default: file/database driver),
+  keyed by an md5 signature of every block file's mtime. On warm requests the
+  full config build (~17–97ms for ~100 blocks) is replaced by a cheap mtime
+  check (~0.1ms). The cache self-invalidates when any `.block` file or any
+  `include`d YAML file changes, so no manual `php artisan cache:clear` is
+  needed after editing blocks. A per-request in-memory memo prevents even the
+  mtime check from running more than once per request.
+
+### Editor UX
+- **Recently used blocks** are pinned to the top of the "add block" palette
+  (tracked in `localStorage`, most-recent first).
+- **Copy / Cut / Paste / Duplicate blocks** — each block has one horizontal
+  toolbar (collapse, copy, cut, paste, duplicate, config, delete). Copy/cut/
+  duplicate place the block's full field data on the clipboard (`sessionStorage`);
+  paste inserts after a block, or appends via a "Paste block" entry at the top
+  of the *+ Add New Item* palette (for empty widgets). Duplicate also clones in
+  place. Paste affordances appear only where the copied block type is offered
+  (respects `allow`/`ignore`/`tags`) and survive navigation within the same
+  browser tab. Direct add/paste/duplicate requests run the same empty-add-item
+  cleanup as the core popover flow, so "Add new item" rows no longer pile up.
+- **Server-side copy/paste** — copying a block calls `onCopyItem`, which builds
+  the block's Form widget server-side and calls `getSaveData()`. This correctly
+  captures every field type — switches, mediafinders, and nested repeaters with
+  their own rows — which a client-side DOM scrape cannot. The clipboard payload
+  (`{group, config, data}`) is sent back to `onAddItem` as `_paste_data`, which
+  seeds the new item via `getValueFromIndex()` before rendering, so the pasted
+  block appears fully populated without a round-trip DOM fill step.
+
+### Tests
+- `BlockManagerTest`: include merging, block-overrides-include precedence,
+  nested includes, circular-include guard, missing-file skip, multiple includes,
+  and the no-include no-op.
+- `BlocksTest`: `collapsible`/`collapsed` shorthand translation to
+  `data-block-collapsible` / `data-block-collapsible-open`, and that non-section
+  / plain-section fields are left untouched.
+- Fixtures under `tests/fixtures/blocks/includes/`.
+
+### Housekeeping
+- Documented the two distinct `blocks.js` files (frontend Snowboard build vs.
+  backend FormWidget script) in `winter.mix.js` to prevent accidental merging.
+- Stopped tracking `.DS_Store` files.

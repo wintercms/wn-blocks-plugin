@@ -1,2 +1,3 @@
 .phpunit.result.cache
 mix.webpack.js
+.DS_Store

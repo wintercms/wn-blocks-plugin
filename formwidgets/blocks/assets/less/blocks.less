@@ -5,6 +5,68 @@
 .field-blocks {
     padding-top: 5px;
 
+    // Per-block toolbar holding every item control in one horizontal row:
+    // collapse, cut, paste, duplicate, config, delete. Overrides the core
+    // fixed 20px width on .repeater-item-remove so the icons never overflow.
+    // Mirrored as an inline-injected <style> in the block widget partial so the
+    // toolbar still renders correctly when the compiled CSS is stale.
+    .field-block-item > .repeater-item-remove.block-item-toolbar {
+        width: auto !important;
+        height: auto !important;
+        display: inline-flex !important;
+        align-items: center;
+        gap: 1px;
+        top: 4px;
+        right: 5px;
+        white-space: nowrap;
+    }
+
+    .block-item-action {
+        float: none;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+        color: @text-color;
+        opacity: .6;
+        font-size: 13px;
+        line-height: 1;
+        border-radius: 3px;
+        transition: background .15s, color .15s, opacity .15s;
+
+        > i { line-height: 1; }
+
+        &:hover,
+        &:focus {
+            opacity: 1;
+            background: rgba(0, 0, 0, .06);
+            color: @text-color;
+            text-decoration: none;
+        }
+
+        &.block-item-action-remove:hover {
+            color: #cc3300;
+        }
+
+        // Keep the collapse chevron's rotate-when-collapsed behaviour.
+        &.repeater-item-collapse-one {
+            transition: transform .3s, background .15s, opacity .15s;
+        }
+    }
+
+    // Rotate the collapse chevron when the item is collapsed (it now lives in
+    // the toolbar rather than the original .repeater-item-collapse wrapper).
+    .field-block-item.collapsed > .repeater-item-remove .repeater-item-collapse-one {
+        .transform(rotate(180deg));
+    }
+
     .field-block-items {
         counter-reset: repeater-index-counter;
     }
