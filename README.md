@@ -11,16 +11,6 @@ Provides a "block based" content management experience in Winter CMS
 > **Block definition features:** **collapsible sections** (with persisted state), **shared field includes** (with nested includes), **recently used blocks** in the palette, and a **cross-request config cache** for fast backend page loads. Copy/Cut/Paste/Duplicate is fully server-side and captures all field types (switches, mediafinders, nested repeaters). See [Collapsible Sections](#collapsible-sections), [Including shared field definitions](#including-shared-field-definitions), [Recently used blocks](#recently-used-blocks), and [Cut, paste and duplicate blocks](#cut-paste-and-duplicate-blocks) below. Full list in [CHANGELOG.md](CHANGELOG.md).
 
 ## Installation
-
-> **Using this fork?** Clone it directly into your Winter CMS plugins directory:
-> ```bash
-> git clone https://github.com/helmutkaufmann/wn-blocks-plugin-1.git plugins/winter/blocks
-> ```
-> To update to the latest version:
-> ```bash
-> git -C plugins/winter/blocks pull
-> ```
-
 This plugin is available for installation via [Composer](http://getcomposer.org/).
 
 ```bash
