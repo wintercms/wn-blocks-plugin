@@ -203,6 +203,7 @@ class Blocks extends Repeater
         $index = post('_repeater_index');
         $groupCode = post('_repeater_group');
 
+        $this->prepareVars();
         $widget = $this->makeItemFormWidget($index, $groupCode);
 
         // The Inspector config is repeater meta, not a form field, so read it

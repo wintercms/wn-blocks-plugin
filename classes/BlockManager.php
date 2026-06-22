@@ -284,6 +284,15 @@ class BlockManager
 
         $mergeKeys = ['fields', 'config'];
 
+        // Capture the block's own definitions before the loop so that each
+        // include sees the original block values, not a previously merged result.
+        // This ensures the block always wins on collision regardless of include order,
+        // and that later includes correctly override earlier ones (not the merged state).
+        $ownByKey = [];
+        foreach ($mergeKeys as $key) {
+            $ownByKey[$key] = (isset($config[$key]) && is_array($config[$key])) ? $config[$key] : [];
+        }
+
         foreach ($paths as $path) {
             if (!is_string($path) || $path === '') {
                 continue;
@@ -292,6 +301,11 @@ class BlockManager
             $realPath = File::symbolizePath($path);
             if (!$realPath || !File::exists($realPath)) {
                 Log::warning("Winter.Blocks: included file not found: {$path}");
+                // Record even missing files so the cache invalidates if they are created later.
+                if ($realPath) {
+                    $canonical = PathResolver::standardize($realPath);
+                    $this->touchedIncludes[$canonical] = 0;
+                }
                 continue;
             }
 
@@ -318,13 +332,14 @@ class BlockManager
                     continue;
                 }
 
-                $own = (isset($config[$key]) && is_array($config[$key])) ? $config[$key] : [];
+                $own = $ownByKey[$key];
 
                 // Warn when a field is redefined with a different type.
                 $this->warnOnTypeCollisions($key, $included[$key], $own);
 
-                // Included definitions form the base; the block's own win on collision.
-                $config[$key] = array_replace_recursive($included[$key], $own);
+                // Included definitions form the base; the block's own definitions always win.
+                // Later includes override earlier ones; the block overrides all.
+                $config[$key] = array_replace_recursive($included[$key], $config[$key] ?? [], $own);
             }
         }
 
@@ -339,20 +354,13 @@ class BlockManager
      */
     protected function warnOnTypeCollisions(string $key, array $included, array $own): void
     {
-        $includedFields = $included;
-        $ownFields = $own;
-
-        if (!is_array($includedFields) || !is_array($ownFields)) {
-            return;
-        }
-
-        foreach ($includedFields as $name => $def) {
-            if (!isset($ownFields[$name]) || !is_array($def) || !is_array($ownFields[$name])) {
+        foreach ($included as $name => $def) {
+            if (!isset($own[$name]) || !is_array($def) || !is_array($own[$name])) {
                 continue;
             }
 
             $includedType = $def['type'] ?? null;
-            $ownType = $ownFields[$name]['type'] ?? null;
+            $ownType = $own[$name]['type'] ?? null;
 
             if ($includedType && $ownType && $includedType !== $ownType) {
                 Log::warning(

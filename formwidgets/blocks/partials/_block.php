@@ -8,6 +8,7 @@
     data-add-handler="<?= $this->getEventHandler('onAddItem') ?>"
     data-copy-handler="<?= $this->getEventHandler('onCopyItem') ?>"
     data-block-codes="<?= e(implode(',', array_keys($groupDefinitions))) ?>"
+    data-widget-id="<?= $this->getId() ?>"
     <?php if ($mode === 'grid'): ?> data-columns="<?= $columns ?>" <?php endif ?>
     <?php if ($sortable) : ?>
     data-sortable="true"
@@ -385,7 +386,10 @@
 
         function storageKey(section) {
             var name = section.getAttribute('data-field-name') || '';
-            return name ? (COLLAPSE_PREFIX + name) : null;
+            if (!name) { return null; }
+            var fieldBlocks = section.closest('.field-blocks');
+            var widgetId = fieldBlocks ? (fieldBlocks.getAttribute('data-widget-id') || '') : '';
+            return COLLAPSE_PREFIX + (widgetId ? widgetId + ':' : '') + name;
         }
 
         function initSections() {
