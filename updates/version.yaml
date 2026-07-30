@@ -1,2 +1,5 @@
 '1.0.0':
     - 'First version of Winter.Blocks'
+'1.1.0':
+    - 'Shared field includes with nested include resolution'
+    - 'Recently used blocks pinned to the Add Block palette'

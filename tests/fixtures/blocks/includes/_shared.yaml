@@ -1,0 +1,11 @@
+fields:
+    shared_field:
+        label: Shared
+        type: text
+    overridden:
+        label: From include
+        type: text
+config:
+    shared_config:
+        label: Shared config
+        type: checkbox

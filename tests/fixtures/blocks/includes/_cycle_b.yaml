@@ -1,0 +1,5 @@
+include: $/winter/blocks/tests/fixtures/blocks/includes/_cycle_a.yaml
+fields:
+    field_b:
+        label: B
+        type: text
