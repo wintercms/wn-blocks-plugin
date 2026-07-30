@@ -63,6 +63,108 @@ class BlocksTest extends PluginTestCase
         $this->assertInstanceOf(Blocks::class, $this->createTestFormWidget());
     }
 
+    /**
+     * Invokes the protected normalizeBlockFields() on a widget instance.
+     */
+    protected function normalizeBlockFields(Blocks $widget, array $fields): array
+    {
+        $method = new \ReflectionMethod(Blocks::class, 'normalizeBlockFields');
+        $method->setAccessible(true);
+
+        return $method->invoke($widget, $fields);
+    }
+
+    /**
+     * @testdox translates collapsible: true into the data-block-collapsible attribute
+     */
+    public function testCollapsibleShorthandAddsAttribute()
+    {
+        $widget = $this->createTestFormWidget();
+
+        $result = $this->normalizeBlockFields($widget, [
+            'section_advanced' => [
+                'type' => 'section',
+                'label' => 'Advanced',
+                'collapsible' => true,
+            ],
+        ]);
+
+        $field = $result['section_advanced'];
+
+        $this->assertArrayHasKey('data-block-collapsible', $field['containerAttributes']);
+        // Defaults to collapsed: no "open" marker.
+        $this->assertArrayNotHasKey('data-block-collapsible-open', $field['containerAttributes']);
+        // Shorthand keys are removed once translated.
+        $this->assertArrayNotHasKey('collapsible', $field);
+        $this->assertArrayNotHasKey('collapsed', $field);
+    }
+
+    /**
+     * @testdox marks a section as initially open when collapsed: false
+     */
+    public function testCollapsedFalseAddsOpenAttribute()
+    {
+        $widget = $this->createTestFormWidget();
+
+        $result = $this->normalizeBlockFields($widget, [
+            'section_open' => [
+                'type' => 'section',
+                'label' => 'Open',
+                'collapsible' => true,
+                'collapsed' => false,
+            ],
+        ]);
+
+        $attrs = $result['section_open']['containerAttributes'];
+
+        $this->assertArrayHasKey('data-block-collapsible', $attrs);
+        $this->assertArrayHasKey('data-block-collapsible-open', $attrs);
+    }
+
+    /**
+     * @testdox does not add the open marker when collapsed: true
+     */
+    public function testCollapsedTrueOmitsOpenAttribute()
+    {
+        $widget = $this->createTestFormWidget();
+
+        $result = $this->normalizeBlockFields($widget, [
+            'section_closed' => [
+                'type' => 'section',
+                'label' => 'Closed',
+                'collapsible' => true,
+                'collapsed' => true,
+            ],
+        ]);
+
+        $attrs = $result['section_closed']['containerAttributes'];
+
+        $this->assertArrayHasKey('data-block-collapsible', $attrs);
+        $this->assertArrayNotHasKey('data-block-collapsible-open', $attrs);
+    }
+
+    /**
+     * @testdox leaves non-section fields and sections without the shorthand untouched
+     */
+    public function testNonCollapsibleFieldsUntouched()
+    {
+        $widget = $this->createTestFormWidget();
+
+        $result = $this->normalizeBlockFields($widget, [
+            'title' => [
+                'type' => 'text',
+                'label' => 'Title',
+            ],
+            'plain_section' => [
+                'type' => 'section',
+                'label' => 'Plain',
+            ],
+        ]);
+
+        $this->assertArrayNotHasKey('containerAttributes', $result['title']);
+        $this->assertArrayNotHasKey('containerAttributes', $result['plain_section']);
+    }
+
     public function testCanLimitAvailableBlocksByTag()
     {
         BlockManager::instance()->registerBlock('container', $this->fixturePath . 'container.block');

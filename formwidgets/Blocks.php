@@ -53,6 +53,9 @@ class Blocks extends Repeater
     {
         $this->addCss('css/blocks.css', 'Winter.Blocks');
         $this->addJs('js/blocks.js', 'Winter.Blocks');
+        // Collapsible-section behaviour is bootstrapped inline in the block
+        // widget partial (formwidgets/blocks/partials/_block.php) so it loads
+        // reliably regardless of asset-path resolution or the asset combiner.
     }
 
     /**
@@ -203,12 +206,12 @@ class Blocks extends Repeater
             }
 
             $definitions[$code] = [
-                'code' => $code,
-                'name' => array_get($config, 'name'),
-                'icon' => array_get($config, 'icon', 'icon-square-o'),
-                'description' => array_get($config, 'description'),
-                'fields' => array_get($config, 'fields'),
-                'config' => array_get($config, 'config', null),
+                'code'          => $code,
+                'name'          => array_get($config, 'name'),
+                'icon'          => array_get($config, 'icon', 'icon-square-o'),
+                'description'   => array_get($config, 'description'),
+                'fields'        => $this->normalizeBlockFields((array) array_get($config, 'fields', [])),
+                'config'        => array_get($config, 'config', null),
             ];
         }
 
@@ -217,6 +220,50 @@ class Blocks extends Repeater
 
         $this->groupDefinitions = $definitions;
         $this->useGroups = true;
+    }
+
+    /**
+     * Translates block YAML shorthands before the fields are handed to the form widget.
+     *
+     * Supported shorthands on `type: section` fields:
+     *   collapsible: true          — makes the section click-to-collapse
+     *   collapsed: true|false      — initial state (true = start collapsed, false = start open)
+     *                                defaults to true when collapsible is set
+     */
+    protected function normalizeBlockFields(array $fields): array
+    {
+        foreach ($fields as &$field) {
+            if (($field['type'] ?? '') !== 'section') {
+                continue;
+            }
+
+            if (!array_key_exists('collapsible', $field)) {
+                continue;
+            }
+
+            if ($field['collapsible']) {
+                $startCollapsed = $field['collapsed'] ?? true;
+
+                // Use our own data attribute (NOT data-field-collapsible) so the
+                // core form widget's bindCollapsibleSections() never touches these
+                // sections. Core re-runs that on every FormWidget init — including
+                // when a nested repeater adds an item — which would re-collapse and
+                // double-bind handlers on sections the user manually opened. We own
+                // the behaviour entirely in the inline bootstrap instead.
+                $field['containerAttributes'] = array_merge(
+                    $field['containerAttributes'] ?? [],
+                    ['data-block-collapsible' => 1]
+                );
+
+                if (!$startCollapsed) {
+                    $field['containerAttributes']['data-block-collapsible-open'] = 1;
+                }
+            }
+
+            unset($field['collapsible'], $field['collapsed']);
+        }
+
+        return $fields;
     }
 
     /**
