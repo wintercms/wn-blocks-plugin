@@ -144,6 +144,35 @@ config:
 </{{ config.size }}>
 ```
 
+## Collapsible Sections
+
+Block fields that use `type: section` can be made collapsible directly in the block YAML.
+
+```yaml
+fields:
+    section_advanced:
+        label: Advanced settings
+        type: section
+        collapsible: true        # makes the section click-to-collapse
+        collapsed: true          # initial state: true = start collapsed (default), false = start open
+    some_field:
+        label: Some field
+        type: text
+```
+
+**Shorthand rules:**
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `collapsible` | bool | — | Set to `true` to enable the collapse toggle |
+| `collapsed` | bool | `true` | Initial state. `false` = section starts open |
+
+When `collapsible: true` is set, the section header becomes a click target. Sections start collapsed by default; set `collapsed: false` to have the section open on first load. Each section's open/closed state is **remembered across page reloads** (stored in `localStorage`, keyed by field name and scoped per widget instance), so the editor returns to the state you left it in.
+
+> **Note:** Collapsible behaviour is handled via the `data-block-collapsible` attribute, bootstrapped inline in the block widget partial (`formwidgets/blocks/partials/_block.php`), independent of WinterCMS's core collapsible-section JS. This is deliberate: core re-collapses and re-binds every section on each form-widget init — including when a nested repeater adds an item — which broke manually-opened sections and stalled repeater "Add item" clicks. Owning the behaviour avoids that entirely, so collapsible sections work correctly even with repeater fields nested inside them.
+
+---
+
 ## Using the `blocks` FormWidget
 
 In order to provide an interface for managing block-based content, this plugin provides the `blocks` FormWidget. This widget can be used in the backend as a form field to manage blocks.
