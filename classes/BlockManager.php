@@ -7,6 +7,8 @@ use Cms\Classes\Controller;
 use Cms\Classes\Theme;
 use Event;
 use File;
+use Log;
+use Yaml;
 use System\Classes\PluginManager;
 use Winter\Storm\Support\Traits\Singleton;
 use Winter\Storm\Support\Str;
@@ -98,7 +100,7 @@ class BlockManager
                 }
             }
 
-            $configs[pathinfo($block['fileName'])['filename']] = array_except(
+            $config = array_except(
                 $block->getAttributes(),
                 [
                     'fileName',
@@ -108,9 +110,144 @@ class BlockManager
                     'code',
                 ]
             );
+
+            $config = $this->resolveIncludes($config);
+
+            $configs[pathinfo($block['fileName'])['filename']] = $config;
         }
 
         return $configs;
+    }
+
+    /**
+     * Resolves an `include` directive in a block definition by merging field
+     * definitions from one or more external YAML files.
+     *
+     * A block may declare:
+     *
+     *     include: $/author/plugin/blocks/_shared.yaml
+     *     # or
+     *     include:
+     *         - $/author/plugin/blocks/_seo.yaml
+     *         - ~/app/blocks/_tracking.yaml
+     *
+     * Each included file is a plain YAML file that may contain any of the keys
+     * `fields` and `config`. Included definitions are
+     * merged in order and act as a base; the block's own definitions take
+     * precedence on key collisions.
+     *
+     * Included files may themselves declare an `include` key — nested includes
+     * are resolved recursively, guarded against circular references.
+     *
+     * Paths are resolved with File::symbolizePath(), so the usual Winter symbols
+     * are supported ($ = plugins, ~ = app, # = app/storage/...).
+     *
+     * @param string[] $visited Canonical paths already being resolved (cycle guard).
+     */
+    protected function resolveIncludes(array $config, array $visited = []): array
+    {
+        if (empty($config['include'])) {
+            unset($config['include']);
+            return $config;
+        }
+
+        $paths = (array) $config['include'];
+        unset($config['include']);
+
+        $mergeKeys = ['fields', 'config'];
+
+        // Capture the block's own definitions before the loop so that each
+        // include sees the original block values, not a previously merged result.
+        // This ensures the block always wins on collision regardless of include order,
+        // and that later includes correctly override earlier ones (not the merged state).
+        $ownByKey = [];
+        foreach ($mergeKeys as $key) {
+            $ownByKey[$key] = (isset($config[$key]) && is_array($config[$key])) ? $config[$key] : [];
+        }
+
+        // Accumulates the merged result of the includes only (own definitions
+        // excluded), so that each new include can freely override the previous
+        // includes without the block's own values getting mixed in as a
+        // tie-breaker. The block's own values are applied once, after the loop.
+        $includedByKey = [];
+        foreach ($mergeKeys as $key) {
+            $includedByKey[$key] = [];
+        }
+
+        foreach ($paths as $path) {
+            if (!is_string($path) || $path === '') {
+                continue;
+            }
+
+            $realPath = File::symbolizePath($path);
+            if (!$realPath || !File::exists($realPath)) {
+                Log::warning("Winter.Blocks: included file not found: {$path}");
+                continue;
+            }
+
+            $canonical = PathResolver::standardize($realPath);
+            if (in_array($canonical, $visited, true)) {
+                Log::warning("Winter.Blocks: circular include detected, skipping: {$path}");
+                continue;
+            }
+
+            $included = Yaml::parse(File::get($realPath));
+            if (!is_array($included)) {
+                continue;
+            }
+
+            // Resolve nested includes first so they form the deepest base layer.
+            $included = $this->resolveIncludes($included, array_merge($visited, [$canonical]));
+
+            foreach ($mergeKeys as $key) {
+                if (!isset($included[$key]) || !is_array($included[$key])) {
+                    continue;
+                }
+
+                // Warn when a field is redefined with a different type.
+                $this->warnOnTypeCollisions($key, $included[$key], $ownByKey[$key]);
+
+                // Later includes override earlier ones. Kept separate from
+                // $ownByKey so the block's own values can't act as a
+                // tie-breaker between includes (that previously made the
+                // first include always win instead of the last one).
+                $includedByKey[$key] = array_replace_recursive($includedByKey[$key], $included[$key]);
+            }
+        }
+
+        foreach ($mergeKeys as $key) {
+            if (empty($includedByKey[$key])) {
+                continue;
+            }
+
+            // Merged includes form the base; the block's own definitions always win.
+            $config[$key] = array_replace_recursive($includedByKey[$key], $ownByKey[$key]);
+        }
+
+        return $config;
+    }
+
+    /**
+     * Logs a warning when merging an include would redefine a field with a
+     * different `type`, which is almost always a mistake.
+     */
+    protected function warnOnTypeCollisions(string $key, array $included, array $own): void
+    {
+        foreach ($included as $name => $def) {
+            if (!isset($own[$name]) || !is_array($def) || !is_array($own[$name])) {
+                continue;
+            }
+
+            $includedType = $def['type'] ?? null;
+            $ownType = $own[$name]['type'] ?? null;
+
+            if ($includedType && $ownType && $includedType !== $ownType) {
+                Log::warning(
+                    "Winter.Blocks: field '{$name}' redefined with a different type " .
+                    "('{$ownType}' overrides included '{$includedType}') in '{$key}'."
+                );
+            }
+        }
     }
 
     /**

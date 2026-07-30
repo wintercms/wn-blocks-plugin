@@ -69,6 +69,7 @@
                                 <a
                                     href="javascript:;"
                                     data-repeater-add
+                                    data-block-code="<?= $item['code'] ?>"
                                     data-request="<?= $this->getEventHandler('onAddItem') ?>"
                                     data-request-data="_repeater_group: '<?= $item['code'] ?>'">
                                     <i class="<?= $item['icon'] ?>"></i>
@@ -84,5 +85,95 @@
                 </div>
             </div>
         </div>
+    </script>
+
+    <?php
+    /*
+     * Inline bootstrap for "recently used blocks": pins the most recently added
+     * block types to the top of the "add block" palette. Loaded inline (rather
+     * than only via addJs) so it is guaranteed to reach the page regardless of
+     * widget asset-path resolution or the asset combiner. A global guard ensures
+     * the handlers are registered only once even when several block widgets
+     * render on the same page.
+     */
+    ?>
+    <script>
+    (function () {
+        if (window.__blockRecentInit) { return; }
+        window.__blockRecentInit = true;
+
+        var RECENT_KEY = 'wnBlocksRecent';
+        var RECENT_MAX = 6;
+
+        function lsGet(key) {
+            try { return window.localStorage.getItem(key); } catch (e) { return null; }
+        }
+        function lsSet(key, val) {
+            try { window.localStorage.setItem(key, val); } catch (e) {}
+        }
+
+        function getRecent() {
+            try {
+                var raw = lsGet(RECENT_KEY);
+                var arr = raw ? JSON.parse(raw) : [];
+                return Array.isArray(arr) ? arr : [];
+            } catch (e) { return []; }
+        }
+
+        function pushRecent(code) {
+            if (!code) { return; }
+            var arr = getRecent().filter(function (c) { return c !== code; });
+            arr.unshift(code);
+            arr = arr.slice(0, RECENT_MAX);
+            lsSet(RECENT_KEY, JSON.stringify(arr));
+        }
+
+        // Record a block as recently used whenever one is added from the palette.
+        document.addEventListener('click', function (e) {
+            var a = e.target.closest('[data-block-code]');
+            if (!a) { return; }
+            pushRecent(a.getAttribute('data-block-code'));
+        });
+
+        // When a palette grid appears, move recently used blocks to the front.
+        // Reordering (rather than cloning) avoids duplicates and styling issues
+        // and degrades gracefully if the markup differs.
+        function applyRecent() {
+            document.querySelectorAll('.blocks-group-grid:not([data-recent-processed])')
+                .forEach(function (grid) {
+                    grid.setAttribute('data-recent-processed', '1');
+                    var recent = getRecent();
+                    // Reverse so the most recent ends up first after successive prepends.
+                    recent.slice().reverse().forEach(function (code) {
+                        var link = grid.querySelector('a[data-block-code="' + code + '"]');
+                        var item = link && link.closest('.blocks-group-item');
+                        if (item && item.parentNode === grid) {
+                            grid.insertBefore(item, grid.firstChild);
+                        }
+                    });
+                });
+        }
+
+        applyRecent();
+
+        var scheduled = false;
+        var observer = new MutationObserver(function (mutations) {
+            if (!mutations.some(function (m) { return m.addedNodes.length > 0; })) { return; }
+            if (scheduled) { return; }
+            scheduled = true;
+            setTimeout(function () {
+                scheduled = false;
+                applyRecent();
+            }, 0);
+        });
+        function startObserving() {
+            if (document.body) {
+                observer.observe(document.body, { childList: true, subtree: true });
+            } else {
+                document.addEventListener('DOMContentLoaded', startObserving);
+            }
+        }
+        startObserving();
+    })();
     </script>
 </div>

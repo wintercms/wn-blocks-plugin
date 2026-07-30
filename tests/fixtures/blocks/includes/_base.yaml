@@ -1,0 +1,4 @@
+fields:
+    base_field:
+        label: Base
+        type: textarea

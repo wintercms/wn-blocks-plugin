@@ -144,6 +144,73 @@ config:
 </{{ config.size }}>
 ```
 
+## Including shared field definitions
+
+To avoid repeating the same fields (or sections) across many blocks, a block can pull them in from one or more external YAML files via the top-level `include` key.
+
+```yaml
+name: Article
+description: An article block
+icon: icon-newspaper
+
+include: $/myauthor/myplugin/blocks/_seo.yaml
+
+fields:
+    title:
+        label: Title
+        type: text
+==
+<article>{{ title }}</article>
+```
+
+`_seo.yaml` is a plain YAML file (no `==` markup, no block metadata) containing any of `fields` or `config`:
+
+```yaml
+# blocks/_seo.yaml
+fields:
+    meta_title:
+        label: Meta title
+        type: text
+    meta_description:
+        label: Meta description
+        type: textarea
+```
+
+**Multiple includes** — pass a list; they are merged in order:
+
+```yaml
+include:
+    - $/myauthor/myplugin/blocks/_seo.yaml
+    - ~/app/blocks/_tracking.yaml
+```
+
+**Merge rules:**
+
+| | |
+|---|---|
+| Merged keys | `fields`, `config` |
+| Precedence | Included files form the base; the block's own definitions **override** on key collision |
+| Order | Multiple includes merge top-to-bottom (later files override earlier ones, the block still wins overall) |
+| Nested includes | An included file may itself declare `include:` — resolved recursively, with a circular-reference guard |
+| Type guard | Redefining a field with a different `type` than the include logs a warning |
+| Missing files | Skipped, and logged as a warning |
+
+**Path resolution** uses the standard Winter path symbols via `File::symbolizePath()`:
+
+| Symbol | Resolves to |
+|---|---|
+| `$/author/plugin/...` | `plugins/author/plugin/...` |
+| `~/...` | application root |
+| `#/...` | `storage/app/...` |
+
+---
+
+## Recently used blocks
+
+When adding a block from the palette, the blocks you use most recently are pinned to the top of the list (tracked per browser in `localStorage`, most-recent first). This speeds up repetitive content building where the same few block types are added over and over. No configuration is required.
+
+---
+
 ## Using the `blocks` FormWidget
 
 In order to provide an interface for managing block-based content, this plugin provides the `blocks` FormWidget. This widget can be used in the backend as a form field to manage blocks.
