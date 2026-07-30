@@ -174,6 +174,8 @@ precedence over fields derived from the component on key collision. If the
 component can't be resolved, a warning is logged and the block's own fields
 are used as-is.
 
+---
+
 ## Using the `blocks` FormWidget
 
 In order to provide an interface for managing block-based content, this plugin provides the `blocks` FormWidget. This widget can be used in the backend as a form field to manage blocks.
