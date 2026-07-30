@@ -7,6 +7,7 @@ use Cms\Classes\Controller;
 use Cms\Classes\Theme;
 use Event;
 use File;
+use Log;
 use System\Classes\PluginManager;
 use Winter\Storm\Support\Traits\Singleton;
 use Winter\Storm\Support\Str;
@@ -98,7 +99,7 @@ class BlockManager
                 }
             }
 
-            $configs[pathinfo($block['fileName'])['filename']] = array_except(
+            $config = array_except(
                 $block->getAttributes(),
                 [
                     'fileName',
@@ -108,9 +109,89 @@ class BlockManager
                     'code',
                 ]
             );
+
+            $config = $this->resolveComponent($config);
+
+            $configs[pathinfo($block['fileName'])['filename']] = $config;
         }
 
         return $configs;
+    }
+
+    /**
+     * Resolves a `component:` key in a block config by merging the component's
+     * `defineProperties()` into the block's `fields:` as base definitions.
+     *
+     * A block may declare:
+     *
+     *     component: mfaGateway
+     *
+     * The component's `defineProperties()` entries are converted to block field
+     * definitions and merged as defaults; the block's own `fields:` always win.
+     *
+     * Property-to-field mapping:
+     *   title       → label
+     *   description → comment
+     *   type        → type (string → text, dropdown → dropdown, checkbox → checkbox)
+     *   default     → default
+     */
+    protected function resolveComponent(array $config): array
+    {
+        if (empty($config['component']) || !is_string($config['component'])) {
+            unset($config['component']);
+            return $config;
+        }
+
+        $componentName = $config['component'];
+        unset($config['component']);
+
+        try {
+            $class = \Cms\Classes\ComponentManager::instance()->resolve($componentName);
+            if (!$class) {
+                Log::warning("Winter.Blocks: component '{$componentName}' not found for block.");
+                return $config;
+            }
+
+            /** @var \Cms\Classes\ComponentBase $instance */
+            $instance = new $class();
+            $properties = method_exists($instance, 'defineProperties') ? $instance->defineProperties() : [];
+
+            // Map component type names to block/form field type names.
+            $typeMap = [
+                'string'   => 'text',
+                'text'     => 'text',
+                'integer'  => 'number',
+                'float'    => 'number',
+                'checkbox' => 'checkbox',
+                'dropdown' => 'dropdown',
+                'set'      => 'checkboxlist',
+            ];
+
+            $fromComponent = [];
+            foreach ($properties as $name => $def) {
+                $propType  = $def['type'] ?? 'string';
+                $fieldType = $typeMap[$propType] ?? 'text';
+                $field = [
+                    'label'   => $def['title']       ?? $name,
+                    'type'    => $fieldType,
+                ];
+                if (isset($def['default']))     $field['default'] = $def['default'];
+                if (!empty($def['description'])) $field['comment'] = $def['description'];
+                if (!empty($def['placeholder'])) $field['placeholder'] = $def['placeholder'];
+                if (!empty($def['options']))     $field['options'] = $def['options'];
+
+                $fromComponent[$name] = $field;
+            }
+
+            // Block's own fields win; component fields fill in the rest.
+            $ownFields = (isset($config['fields']) && is_array($config['fields'])) ? $config['fields'] : [];
+            $config['fields'] = array_replace($fromComponent, $ownFields);
+
+        } catch (\Throwable $e) {
+            Log::warning("Winter.Blocks: could not resolve component '{$componentName}': " . $e->getMessage());
+        }
+
+        return $config;
     }
 
     /**

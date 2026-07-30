@@ -144,6 +144,38 @@ config:
 </{{ config.size }}>
 ```
 
+## Deriving fields from a component
+
+A block can declare a top-level `component:` key to derive default fields from
+a CMS component's `defineProperties()`, instead of (or alongside) hand-written
+`fields:`.
+
+```yaml
+name: MFA Gateway
+description: Configurable MFA gateway block
+icon: icon-lock
+
+component: mfaGateway
+
+fields:
+    title:
+        label: Title
+        type: text
+==
+{% component 'mfaGateway' %}
+```
+
+The component's properties are converted to block fields (`title` → `label`,
+`description` → `comment`, `default` → `default`, `placeholder`, `options`),
+with property types mapped to field types (`string`/`text` → `text`,
+`integer`/`float` → `number`, `checkbox` → `checkbox`, `dropdown` →
+`dropdown`, `set` → `checkboxlist`). The block's own `fields:` always take
+precedence over fields derived from the component on key collision. If the
+component can't be resolved, a warning is logged and the block's own fields
+are used as-is.
+
+---
+
 ## Using the `blocks` FormWidget
 
 In order to provide an interface for managing block-based content, this plugin provides the `blocks` FormWidget. This widget can be used in the backend as a form field to manage blocks.
