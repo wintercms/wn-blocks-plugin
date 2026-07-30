@@ -144,6 +144,25 @@ config:
 </{{ config.size }}>
 ```
 
+## Cut, paste and duplicate blocks
+
+Every block has a single horizontal toolbar (top-right) with, in order:
+**collapse**, **copy**, **cut**, **paste**, **duplicate**, *(config, if the
+block has an inspector)* and **delete**.
+
+- **Copy** — places the block's field values on the clipboard (non-destructive).
+- **Cut** — places the block's field values on the clipboard, then removes it (with the usual confirmation prompt).
+- **Paste after** — once the clipboard holds a block, a per-block paste icon inserts the copied block immediately **after** that block. A **Paste block** entry also appears at the top of the "Add Block" palette (the popover opened by *+ Add New Item*), which is handy for inserting into an empty widget or at the end of a list.
+- **Duplicate** — one-step clone: serialises the current block, saves it to the clipboard, and immediately inserts a filled copy right after it.
+
+Use **Duplicate** for a quick in-place clone. Use **Paste after** (or **Paste block** in the palette) when you want to insert a previously copied block at a specific position or into a different widget.
+
+Paste/duplicate respect the widget's `allow` / `ignore` / `tags` constraints: the paste affordances only appear where the copied block type is actually offered. The clipboard persists for the duration of the browser session (`sessionStorage`), so you can paste across different pages in the same tab.
+
+> **How copy/paste works:** Copying a block calls a server-side handler (`onCopyItem`) that builds the block's form widget and calls `getSaveData()`. This correctly captures every field type — including switches, mediafinders, and nested repeaters with their own rows — which a client-side DOM scrape cannot. The payload is stored in `sessionStorage` and sent back on paste, where the new item is rendered server-side pre-populated. Rich-text and code editor widgets are refreshed via their own APIs after the item is inserted into the DOM.
+
+---
+
 ## Using the `blocks` FormWidget
 
 In order to provide an interface for managing block-based content, this plugin provides the `blocks` FormWidget. This widget can be used in the backend as a form field to manage blocks.

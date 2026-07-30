@@ -1,0 +1,19 @@
+name: Complex
+description: Block with a switch and a nested repeater of blocks, used for copy/paste tests
+icon: icon-square
+tags: ["content"]
+fields:
+    title:
+        label: Title
+        type: text
+    enabled:
+        label: Enabled
+        type: switch
+        default: true
+    items:
+        label: false
+        type: blocks
+        span: full
+        allow:
+            - title
+==
