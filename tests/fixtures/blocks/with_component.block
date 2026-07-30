@@ -1,0 +1,10 @@
+name: With component
+description: Block that resolves its fields from a component
+icon: icon-square
+tags: ["content"]
+component: testcomponent
+fields:
+    style:
+        label: Style override
+        type: dropdown
+==
