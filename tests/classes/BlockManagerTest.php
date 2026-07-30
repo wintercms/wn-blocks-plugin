@@ -192,6 +192,45 @@ BLOCK);
         unlink($path);
     }
 
+    /**
+     * @testdox includes nested theme block files in the cache signature
+     */
+    public function testBlocksSignatureIncludesNestedThemeBlocks()
+    {
+        // Themes may nest .block files in subfolders (see README "Registering
+        // Blocks"), and getBlocks() picks those up via a recursive Halcyon
+        // scan. The signature must scan just as deep, or an edit to a nested
+        // theme block would go unnoticed and the cache would serve stale data.
+        $themeBlocksDir = Theme::getActiveTheme()->getPath() . '/blocks';
+        $nestedDir = $themeBlocksDir . '/nested_signature_test';
+        mkdir($nestedDir, 0777, true);
+        $path = $nestedDir . '/mutable.block';
+        file_put_contents($path, "name: Nested\ndescription: Nested theme block\n");
+        touch($path, time());
+
+        $reflection = new \ReflectionMethod(BlockManager::class, 'blocksSignature');
+        $reflection->setAccessible(true);
+
+        try {
+            BlockManager::forgetInstance();
+            $before = $reflection->invoke(BlockManager::instance());
+
+            touch($path, time() + 10);
+
+            BlockManager::forgetInstance();
+            $after = $reflection->invoke(BlockManager::instance());
+
+            $this->assertNotEquals(
+                $before,
+                $after,
+                'Expected the signature to change when a nested theme block file\'s mtime changes.'
+            );
+        } finally {
+            unlink($path);
+            rmdir($nestedDir);
+        }
+    }
+
     public function testCanRegisterBlocksDirectly()
     {
         $this->manager->registerBlock('container', $this->fixturePath . 'container.block');

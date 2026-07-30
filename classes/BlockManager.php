@@ -200,10 +200,16 @@ class BlockManager
             $parts[$path] = @filemtime($path) ?: 0;
         }
 
-        // Theme-provided block files, if the active theme ships any.
+        // Theme-provided block files, if the active theme ships any. Themes can
+        // nest .block files in subfolders (see README "Registering Blocks"), and
+        // getBlocks() picks those up via Block::listInTheme()'s recursive Halcyon
+        // scan, so the signature must scan recursively too or edits to a nested
+        // theme block would go unnoticed and serve a stale cache entry.
         if (($theme = Theme::getActiveTheme()) && is_dir($themeDir = $theme->getPath() . '/blocks')) {
-            foreach (glob($themeDir . '/*.' . static::BLOCK_EXTENSION) ?: [] as $path) {
-                $parts[$path] = @filemtime($path) ?: 0;
+            foreach (File::allFiles($themeDir) as $file) {
+                if ($file->getExtension() === static::BLOCK_EXTENSION) {
+                    $parts[$file->getPathname()] = $file->getMTime();
+                }
             }
         }
 
