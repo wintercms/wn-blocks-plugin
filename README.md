@@ -144,6 +144,17 @@ config:
 </{{ config.size }}>
 ```
 
+## Performance
+
+`BlockManager::getConfigs()` caches built block configs across requests (via
+Laravel's cache facade), keyed by a signature derived from every registered
+`.block` file's mtime. The cache self-invalidates whenever a `.block` file is
+added, removed, or edited — no manual `php artisan cache:clear` needed. A
+per-request in-memory memo additionally avoids recomputing the signature more
+than once per request.
+
+---
+
 ## Using the `blocks` FormWidget
 
 In order to provide an interface for managing block-based content, this plugin provides the `blocks` FormWidget. This widget can be used in the backend as a form field to manage blocks.
