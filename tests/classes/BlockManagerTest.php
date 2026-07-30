@@ -167,6 +167,21 @@ class BlockManagerTest extends PluginTestCase
     }
 
     /**
+     * @testdox on key collision between two includes, the later include wins
+     */
+    public function testLaterIncludeOverridesEarlierInclude()
+    {
+        $result = $this->resolveIncludes([
+            'include' => [
+                $this->includePath('_order_a.yaml'),
+                $this->includePath('_order_b.yaml'),
+            ],
+        ]);
+
+        $this->assertSame('From B', $result['fields']['ordered_field']['label']);
+    }
+
+    /**
      * @testdox leaves a block without an include untouched
      */
     public function testNoIncludeIsNoop()

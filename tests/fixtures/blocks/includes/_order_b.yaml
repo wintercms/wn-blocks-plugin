@@ -1,0 +1,4 @@
+fields:
+    ordered_field:
+        label: From B
+        type: text

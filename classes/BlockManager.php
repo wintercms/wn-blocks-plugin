@@ -165,6 +165,15 @@ class BlockManager
             $ownByKey[$key] = (isset($config[$key]) && is_array($config[$key])) ? $config[$key] : [];
         }
 
+        // Accumulates the merged result of the includes only (own definitions
+        // excluded), so that each new include can freely override the previous
+        // includes without the block's own values getting mixed in as a
+        // tie-breaker. The block's own values are applied once, after the loop.
+        $includedByKey = [];
+        foreach ($mergeKeys as $key) {
+            $includedByKey[$key] = [];
+        }
+
         foreach ($paths as $path) {
             if (!is_string($path) || $path === '') {
                 continue;
@@ -195,15 +204,24 @@ class BlockManager
                     continue;
                 }
 
-                $own = $ownByKey[$key];
-
                 // Warn when a field is redefined with a different type.
-                $this->warnOnTypeCollisions($key, $included[$key], $own);
+                $this->warnOnTypeCollisions($key, $included[$key], $ownByKey[$key]);
 
-                // Included definitions form the base; the block's own definitions always win.
-                // Later includes override earlier ones; the block overrides all.
-                $config[$key] = array_replace_recursive($included[$key], $config[$key] ?? [], $own);
+                // Later includes override earlier ones. Kept separate from
+                // $ownByKey so the block's own values can't act as a
+                // tie-breaker between includes (that previously made the
+                // first include always win instead of the last one).
+                $includedByKey[$key] = array_replace_recursive($includedByKey[$key], $included[$key]);
             }
+        }
+
+        foreach ($mergeKeys as $key) {
+            if (empty($includedByKey[$key])) {
+                continue;
+            }
+
+            // Merged includes form the base; the block's own definitions always win.
+            $config[$key] = array_replace_recursive($includedByKey[$key], $ownByKey[$key]);
         }
 
         return $config;
