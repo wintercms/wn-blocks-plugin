@@ -13,14 +13,20 @@ if (empty($argv[1])) {
 }
 
 // Get a changelist of files from Git for this PR.
-$fileList = shell_exec('git diff --name-only --diff-filter=ACMR origin/' . $argv[1] . ' HEAD');
+$fileList = shell_exec('git diff --name-only --diff-filter=ACMR origin/' . escapeshellarg($argv[1]) . ' HEAD');
 $files = array_filter(explode("\n", $fileList));
 
-foreach ($files as &$file) {
-    if (strpos($file, ' ') !== false) {
-        $file = str_replace(' ', '\\ ', $file);
-    }
+// No changed files remain (e.g. a deletion-only diff). Bail out successfully:
+// running PHPCS with no target makes it fall back to the <file> entries in
+// phpcs.xml and scan the whole repository, which could fail on unrelated code.
+if (!count($files)) {
+    echo "\e[0;32mFound no issues with code quality.\e[0m";
+    echo "\n";
+    exit(0);
 }
+
+// Escape each path so filenames are passed to the shell safely.
+$files = array_map('escapeshellarg', $files);
 
 // Run all changed files through the PHPCS code sniffer and generate a CSV report
 $csv = shell_exec('phpcs --colors -nq --report="csv" --extensions="php" ' . implode(' ', $files));
