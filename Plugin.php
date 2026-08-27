@@ -10,6 +10,7 @@ use System\Classes\PluginBase;
 use Winter\Blocks\Classes\BlockManager;
 use Winter\Blocks\Classes\BlocksDatasource;
 use Winter\Blocks\Classes\Block as BlockModel;
+use Winter\Blocks\Console\ScaffoldCommand;
 use Winter\Blocks\FormWidgets\Block;
 
 /**
@@ -110,6 +111,8 @@ class Plugin extends PluginBase
      */
     public function register(): void
     {
+        $this->registerConsoleCommand('winter.blocks.scaffold', ScaffoldCommand::class);
+
         Event::listen('cms.theme.registerHalcyonDatasource', function (Theme $theme, $resolver) {
             BlockManager::instance(); // moved here
     
