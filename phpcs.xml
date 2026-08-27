@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<ruleset name="Winter CMS Plugins">
+    <description>The coding standard for Winter CMS Plugins.</description>
+    <rule ref="PSR2">
+        <!--
+        Exceptions to the PSR-2 guidelines as per our Developer Guide:
+        https://wintercms.com/help/guidelines/developer#psr-exceptions
+        -->
+        <exclude name="PSR1.Methods.CamelCapsMethodName.NotCamelCaps" />
+        <exclude name="Squiz.ControlStructures.ControlSignature.SpaceAfterCloseBrace" />
+        <exclude name="PSR2.ControlStructures.ControlStructureSpacing.SpacingAfterOpenBrace" />
+
+        <!-- We're not enforcing a line length limit -->
+        <exclude name="Generic.Files.LineLength" />
+    </rule>
+
+    <rule ref="Squiz.ControlStructures.ControlSignature">
+        <!-- We use 0 spaces before the colon for short (alternative) tags -->
+        <properties>
+            <property name="requiredSpacesBeforeColon" value="0" />
+        </properties>
+    </rule>
+
+    <rule ref="Squiz.WhiteSpace.ControlStructureSpacing.SpacingAfterOpen">
+        <!--
+        Ignore correct spacing for control structures in partial templates - spacing may be useful
+        for templates to easily deduce HTML code that is conditional
+        -->
+        <exclude-pattern>*/behaviors/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/components/*/*\.php</exclude-pattern>
+        <exclude-pattern>*/controllers/*/*\.php</exclude-pattern>
+        <exclude-pattern>*/formwidgets/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/reportwidgets/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/widgets/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/partials/*\.php</exclude-pattern>
+    </rule>
+
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <!-- Migration files and tests do not need a namespace defined -->
+        <exclude-pattern>*/updates/*\.php</exclude-pattern>
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+
+    <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
+        <!--
+        Test bootstraps declare a conditional base test case class for cross-version
+        compatibility (e.g. System\Tests\Bootstrap\PluginTestCase vs PluginTestCase)
+        -->
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+
+    <rule ref="PSR2.Files.ClosingTag.NotAllowed">
+        <!--
+        Partials may finish on a closing tag, especially when using the short echo "<?= ?>" tag. We'll allow this.
+        -->
+        <exclude-pattern>*/behaviors/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/components/*/*\.php</exclude-pattern>
+        <exclude-pattern>*/controllers/*/*\.php</exclude-pattern>
+        <exclude-pattern>*/formwidgets/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/reportwidgets/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/widgets/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/partials/*\.php</exclude-pattern>
+    </rule>
+
+    <rule ref="PSR2.ControlStructures.SwitchDeclaration.BodyOnNextLineCASE">
+        <!--
+        Partials may have HTML within switch/case statements, which look neater when inline. PHPCS also has difficulty
+        interpreting a short echo tag on a new line within a switch/case statement.
+        -->
+        <exclude-pattern>*/behaviors/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/components/*/*\.php</exclude-pattern>
+        <exclude-pattern>*/controllers/*/*\.php</exclude-pattern>
+        <exclude-pattern>*/formwidgets/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/reportwidgets/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/widgets/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/partials/*\.php</exclude-pattern>
+    </rule>
+
+    <rule ref="PSR2.ControlStructures.SwitchDeclaration.BreakNotNewLine">
+        <exclude-pattern>*/behaviors/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/components/*/*\.php</exclude-pattern>
+        <exclude-pattern>*/controllers/*/*\.php</exclude-pattern>
+        <exclude-pattern>*/formwidgets/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/reportwidgets/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/widgets/*/partials/*\.php</exclude-pattern>
+        <exclude-pattern>*/partials/*\.php</exclude-pattern>
+    </rule>
+
+    <arg name="extensions" value="php" />
+    <arg name="colors" />
+    <arg value="nq" />
+
+    <file>.</file>
+    <exclude-pattern>*/assets/*</exclude-pattern>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+</ruleset>
