@@ -1,2 +1,18 @@
 '1.0.0':
     - 'First version of Winter.Blocks'
+'2.0.0':
+    - '!!! The block `context` property has been renamed to `tags`. The `ignoreContext` and `allowContext` block properties have been removed in favour of the `blocks` FormWidget''s `allow` and `ignore` properties, which now accept `blocks` and `tags` keys'
+    - '!!! The `blocks` FormWidget''s `blockContext` property has been renamed to `tags`'
+    - '!!! Block definitions now support a `config` section for appearance and structure options, separate from `fields`, which hold the block''s content. The bundled `title`, `image` and `button_group` blocks have moved options from `fields` to `config` and their stored values are not migrated'
+    - 'Added `Block::render()` and `Block::renderAll()`, along with the `renderBlock()` and `renderBlocks()` Twig functions, for rendering blocks'
+    - 'Redesigned the `blocks` FormWidget with an Inspector for block configuration, block searching, a two column block selector, block tags, and improved accessibility'
+    - 'Added the `open_media` action for downloading a file from the Media Library'
+    - 'Added `BlockManager::removeBlock()` for removing registered blocks by key'
+    - 'Added a French translation'
+    - 'Added a `composer.json`, automated tests, and code coverage reporting'
+    - 'Fixed exceptions being thrown when `enableTwigStrictVariables` is enabled'
+    - 'Fixed blocks being missed when generating the datasource cache key'
+    - 'Fixed block names being mishandled as ids'
+    - 'Fixed nested block configuration values conflicting with each other'
+    - 'Fixed the loading order of the `BlockManager`'
+    - 'Fixed the block configuration popover not closing in the CMS page editor'
