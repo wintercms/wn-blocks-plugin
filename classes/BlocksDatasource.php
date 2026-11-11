@@ -14,7 +14,7 @@ class BlocksDatasource extends Datasource
 
     public function __construct()
     {
-        $this->processor = new BlockProcessor();
+        $this->postProcessor = new BlockProcessor();
         $this->blocks = array_merge(
             // Get blocks registered via plugins
             BlockManager::instance()->getRegisteredBlocks(),
